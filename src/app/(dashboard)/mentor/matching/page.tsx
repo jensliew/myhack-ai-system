@@ -8,6 +8,8 @@ import { useTieredStartupRecommendations } from "@/hooks/useTieredStartupRecomme
 import type { TieredStartupRecommendation } from "@/hooks/useTieredStartupRecommendations";
 import { StartupCard } from "@/components/cards/StartupCard";
 import { expressInterest } from "@/services/matching/interest.service";
+import { getStartupById } from "@/services/firebase/firestore.service";
+import type { StartupDocument } from "@/types/startup.types";
 import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
 import { RefreshCw } from "lucide-react";
@@ -41,6 +43,9 @@ export default function MentorMatchingPage() {
     useTieredStartupRecommendations();
 
   const [actionLoading, setActionLoading] = useState<Record<string, string>>({});
+  const [startupProfiles, setStartupProfiles] = useState<
+    Record<string, StartupDocument>
+  >({});
 
   const allRecs: Array<TieredStartupRecommendation & { tierKey: TierKey }> = [
     ...tiers.previousCollaborations.map((r) => ({
@@ -53,6 +58,23 @@ export default function MentorMatchingPage() {
       tierKey: "expressedInterest" as const,
     })),
   ];
+
+  // Fetch startup profiles
+  useEffect(() => {
+    async function loadProfiles() {
+      const profiles: Record<string, StartupDocument> = {};
+      for (const rec of allRecs) {
+        if (!startupProfiles[rec.startupId]) {
+          const result = await getStartupById(rec.startupId);
+          if (result.data) profiles[rec.startupId] = result.data;
+        }
+      }
+      if (Object.keys(profiles).length > 0) {
+        setStartupProfiles((prev) => ({ ...prev, ...profiles }));
+      }
+    }
+    if (allRecs.length > 0) loadProfiles();
+  }, [allRecs.length, tiers, startupProfiles]);
 
   async function handleInterest(startupId: string, tierKey: TierKey) {
     if (!user) return;
@@ -97,30 +119,28 @@ export default function MentorMatchingPage() {
 
         {items.length > 0 && (
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {items.map((rec) => (
-              <div key={`${tierKey}-${rec.startupId}`} className="relative">
-                <StartupCard
-                  startup={{
-                    id: rec.startupId,
-                    name: rec.startupId,
-                    industry: "",
-                    stage: "seed",
-                    fundingStage: "",
-                    goals: [],
-                    description: rec.reasoning,
-                    teamSize: 0,
-                    location: "",
-                  }}
-                  onInterested={() => handleInterest(rec.startupId, tierKey)}
-                  isInterested={false}
-                  isLoading={actionLoading[rec.startupId] === "interest"}
-                />
-                {/* Match score badge */}
-                <div className="absolute top-2 right-2 bg-primary text-primary-foreground px-2 py-1 rounded text-xs font-semibold">
-                  {rec.compatibilityScore}%
+            {items.map((rec) => {
+              const startup = startupProfiles[rec.startupId];
+              if (!startup) return null;
+
+              return (
+                <div key={`${tierKey}-${rec.startupId}`} className="relative">
+                  <StartupCard
+                    startup={{
+                      ...startup,
+                      description: rec.reasoning,
+                    }}
+                    onInterested={() => handleInterest(rec.startupId, tierKey)}
+                    isInterested={false}
+                    isLoading={actionLoading[rec.startupId] === "interest"}
+                  />
+                  {/* Match score badge */}
+                  <div className="absolute top-2 right-2 bg-primary text-primary-foreground px-2 py-1 rounded text-xs font-semibold">
+                    {rec.compatibilityScore}%
+                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
       </section>
