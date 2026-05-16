@@ -7,7 +7,7 @@ import { Loader2 } from "lucide-react";
 
 import { useAuth } from "@/hooks/useAuth";
 import { startupsCollection } from "@/firebase/collections";
-import type { StartupDocument, StartupStage } from "@/types/startup.types";
+import type { StartupDocument, StartupStage, ProjectPhase } from "@/types/startup.types";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -30,6 +30,12 @@ const STAGE_OPTIONS: { value: StartupStage; label: string }[] = [
   { value: "growth", label: "Growth" },
 ];
 
+const PHASE_OPTIONS: { value: ProjectPhase; label: string; description: string }[] = [
+  { value: "initial", label: "Initial", description: "Matching phase - selecting mentors" },
+  { value: "processing", label: "Processing", description: "Active mentorship - uploading documents" },
+  { value: "final", label: "Final", description: "Feedback phase - completing evaluation" },
+];
+
 export default function StartupProfilePage() {
   const { user } = useAuth();
   const [loading, setLoading] = useState(true);
@@ -44,6 +50,7 @@ export default function StartupProfilePage() {
   const [teamSize, setTeamSize] = useState("1");
   const [location, setLocation] = useState("");
   const [website, setWebsite] = useState("");
+  const [projectPhase, setProjectPhase] = useState<ProjectPhase>("initial");
 
   useEffect(() => {
     async function fetchProfile() {
@@ -62,6 +69,7 @@ export default function StartupProfilePage() {
           setTeamSize(String(data.teamSize ?? 1));
           setLocation(data.location ?? "");
           setWebsite(data.website ?? "");
+          setProjectPhase(data.projectPhase ?? "initial");
         }
       } catch {
         // Profile doesn't exist yet — that's fine
@@ -77,7 +85,7 @@ export default function StartupProfilePage() {
 
     setSaving(true);
 
-    const profileData: Record<string, unknown> = {
+    const profileData: Partial<StartupDocument> = {
       userId: user.id,
       name,
       industry,
@@ -87,6 +95,7 @@ export default function StartupProfilePage() {
       description,
       teamSize: parseInt(teamSize) || 1,
       location,
+      projectPhase,
       updatedAt: Timestamp.now(),
     };
 
@@ -100,9 +109,13 @@ export default function StartupProfilePage() {
       const existing = await getDoc(docRef);
 
       if (existing.exists()) {
-        await setDoc(docRef, { ...profileData, createdAt: existing.data().createdAt }, { merge: true });
+        await setDoc(docRef, profileData, { merge: true });
       } else {
-        await setDoc(docRef, { ...profileData, id: user.entityId, createdAt: Timestamp.now() });
+        await setDoc(docRef, {
+          ...profileData,
+          id: user.entityId,
+          createdAt: Timestamp.now(),
+        } as StartupDocument);
       }
 
       toast.success("Profile saved.");
@@ -181,6 +194,28 @@ export default function StartupProfilePage() {
               <div className="space-y-2">
                 <Label htmlFor="location">Location</Label>
                 <Input id="location" value={location} onChange={(e) => setLocation(e.target.value)} />
+              </div>
+            <div className="space-y-2">
+                <Label>Project Phase</Label>
+                <Select value={projectPhase} onValueChange={(v) => {
+                  setProjectPhase(v as ProjectPhase);
+                  // Auto-save when phase changes
+                  setTimeout(() => {
+                    handleSave(new Event('submit') as any);
+                  }, 100);
+                }}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    {PHASE_OPTIONS.map((p) => (
+                      <SelectItem key={p.value} value={p.value}>
+                        <div>
+                          <div className="font-medium">{p.label}</div>
+                          <div className="text-xs text-muted-foreground">{p.description}</div>
+                        </div>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
             </div>
 

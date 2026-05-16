@@ -12,6 +12,11 @@ export type StartupStage =
   | "growth";
 
 /**
+ * Project phase for mentorship tracking.
+ */
+export type ProjectPhase = "initial" | "processing" | "final";
+
+/**
  * Firestore document schema for the `startups` collection.
  */
 export interface StartupDocument {
@@ -26,6 +31,7 @@ export interface StartupDocument {
   teamSize: number;
   location: string;
   website?: string;
+  projectPhase?: ProjectPhase; // Mentorship project phase: initial -> processing -> final
   createdAt: Timestamp;
   updatedAt: Timestamp;
 }

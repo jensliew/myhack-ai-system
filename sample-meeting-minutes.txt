@@ -1,0 +1,60 @@
+MEETING MINUTES
+===============
+
+Date: May 15, 2026
+Attendees: Sarah Chen (Mentor), John Smith (Founder, SeaTong), Maria Garcia (CTO, SeaTong)
+Duration: 1 hour
+Location: Zoom
+
+AGENDA
+------
+1. Product roadmap review
+2. Go-to-market strategy
+3. Fundraising preparation
+4. Team scaling
+
+DISCUSSION POINTS
+-----------------
+
+1. PRODUCT ROADMAP
+   - SeaTong has completed MVP with core marketplace features
+   - Next milestone: Launch supplier verification system (Q2 2026)
+   - Sarah suggested implementing AI-powered quality scoring
+   - Action Item: John to create detailed technical spec by May 22
+
+2. GO-TO-MARKET STRATEGY
+   - Current focus: Direct outreach to 50 restaurants in Singapore
+   - Sarah recommended partnership approach with food delivery platforms
+   - Discussed pricing strategy - currently 8% commission
+   - Action Item: Maria to research competitor pricing models
+
+3. FUNDRAISING PREPARATION
+   - SeaTong targeting $500K seed round
+   - Sarah provided feedback on pitch deck - needs stronger market size data
+   - Discussed investor network - Sarah offered 3 warm introductions
+   - Action Item: John to update financial projections with market research
+
+4. TEAM SCALING
+   - Currently 6 people, need to hire 2 more engineers
+   - Sarah shared hiring best practices from her experience
+   - Discussed equity compensation structure
+   - Action Item: John to prepare job descriptions for engineering roles
+
+KEY DECISIONS
+-------------
+- Proceed with supplier verification feature as next priority
+- Launch partnership discussions with food delivery platforms
+- Schedule follow-up meeting in 2 weeks to review progress
+
+NEXT STEPS
+----------
+1. John: Technical spec for verification system (May 22)
+2. Maria: Competitor analysis report (May 20)
+3. John: Updated pitch deck with market data (May 25)
+4. Sarah: Provide investor introductions (May 18)
+
+FOLLOW-UP MEETING
+-----------------
+Scheduled for May 29, 2026 at 3 PM SGT
+
+Notes: Great progress on product development. Team is executing well. Focus now on market validation and fundraising readiness.

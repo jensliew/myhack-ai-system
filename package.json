@@ -4,6 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
+    "dev:ai": "cd ai-backend && npm install && npm start",
     "build": "next build",
     "start": "next start",
     "lint": "eslint",

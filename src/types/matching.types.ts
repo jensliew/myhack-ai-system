@@ -25,6 +25,7 @@ export interface RelationshipRecord {
   source: "ai_recommendation" | "mentor_interest";
   engagementScore: number; // 0-100, updated over time
   meetingCount: number;
+  phase?: "initial" | "processing" | "final"; // Project phase
   lastInteraction: Timestamp;
   createdAt: Timestamp;
   updatedAt: Timestamp;

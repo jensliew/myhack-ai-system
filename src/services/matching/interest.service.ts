@@ -100,7 +100,45 @@ export async function hasExpressedInterest(
 }
 
 /**
+ * Gets all startups a mentor has expressed interest in.
+ * Only returns pending interests (not accepted or rejected).
+ * Ordered by most recent first.
+ */
+export async function getInterestedStartupsForMentor(
+  mentorId: string
+): Promise<ServiceResult<InterestRecord[]>> {
+  try {
+    const q = query(
+      mentorInterestsCollection,
+      where("mentorId", "==", mentorId),
+      where("status", "==", "pending"),
+      orderBy("createdAt", "desc")
+    );
+    const snapshot = await getDocs(q);
+
+    const interests: InterestRecord[] = snapshot.docs.map((docSnap) => ({
+      ...docSnap.data(),
+      id: docSnap.id,
+    })) as InterestRecord[];
+
+    return { data: interests, error: null };
+  } catch (error: unknown) {
+    const err = error as { code?: string };
+    return {
+      data: null,
+      error: {
+        code: err.code ?? "interest/fetch-failed",
+        message: "Failed to fetch interested startups.",
+        retryable: true,
+      },
+    };
+  }
+}
+
+
+/**
  * Gets all mentors who have expressed interest in a specific startup.
+ * Only returns pending interests (not accepted or rejected).
  * Ordered by most recent first.
  */
 export async function getInterestedMentorsForStartup(
@@ -110,6 +148,7 @@ export async function getInterestedMentorsForStartup(
     const q = query(
       mentorInterestsCollection,
       where("startupId", "==", startupId),
+      where("status", "==", "pending"),
       orderBy("createdAt", "desc")
     );
     const snapshot = await getDocs(q);

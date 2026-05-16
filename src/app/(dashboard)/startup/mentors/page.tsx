@@ -44,7 +44,18 @@ export default function StartupMentorsPage() {
         })
       );
 
-      setRelationships(rels.filter(Boolean) as RelationshipWithMentor[]);
+      // Deduplicate by mentorId - keep only the first occurrence of each mentor
+      const deduplicatedRels = rels.filter(Boolean) as RelationshipWithMentor[];
+      const seenMentorIds = new Set<string>();
+      const uniqueRels = deduplicatedRels.filter((item) => {
+        if (seenMentorIds.has(item.mentor.id)) {
+          return false;
+        }
+        seenMentorIds.add(item.mentor.id);
+        return true;
+      });
+
+      setRelationships(uniqueRels);
     } catch {
       // Silently fail
     }

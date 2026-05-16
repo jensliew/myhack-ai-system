@@ -1,97 +1,109 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect } from "react";
 import { toast } from "sonner";
 
 import { useAuth } from "@/hooks/useAuth";
-import { useRecommendations } from "@/hooks/useRecommendations";
+import { useTieredRecommendations } from "@/hooks/useTieredRecommendations";
+import type { TieredMentorRecommendation } from "@/hooks/useTieredRecommendations";
 import { MentorCard } from "@/components/cards/MentorCard";
-import {
-  acceptMentor,
-  rejectMentor,
-  getInterestedMentors,
-} from "@/services/matching/matching.service";
-import { getMentorById } from "@/services/firebase/firestore.service";
-import type { InterestRecord } from "@/types/matching.types";
+import { ProjectPhaseIndicator } from "@/components/ProjectPhaseIndicator";
+import { acceptMentor, rejectMentor } from "@/services/matching/matching.service";
+import { getMentorById, getStartupById } from "@/services/firebase/firestore.service";
 import type { MentorDocument } from "@/types/mentor.types";
+import type { ProjectPhase } from "@/types/startup.types";
 import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
 import { RefreshCw } from "lucide-react";
 
+type TierKey = "previousCollaborations" | "aiSuggested" | "interested";
+
+const tierMeta: Record<
+  TierKey,
+  {
+    title: string;
+    source: "ai" | "interest";
+    acceptSource: "ai_recommendation" | "mentor_interest";
+  }
+> = {
+  previousCollaborations: {
+    title: "Previous Collaborations",
+    source: "ai",
+    acceptSource: "ai_recommendation",
+  },
+  aiSuggested: {
+    title: "AI Suggested Mentors",
+    source: "ai",
+    acceptSource: "ai_recommendation",
+  },
+  interested: {
+    title: "Mentors Interested",
+    source: "interest",
+    acceptSource: "mentor_interest",
+  },
+};
+
 export default function StartupDashboardPage() {
   const { user } = useAuth();
-  const { recommendations, loading: recsLoading, error: recsError, refresh, removeRecommendation } = useRecommendations();
+  const { tiers, loading, error, refresh, removeFromTier } =
+    useTieredRecommendations();
 
-  const [interestedMentors, setInterestedMentors] = useState<
-    Array<{ interest: InterestRecord; mentor: MentorDocument }>
-  >([]);
-  const [interestedLoading, setInterestedLoading] = useState(true);
-  const [actionLoading, setActionLoading] = useState<Record<string, string>>({});
+  const [mentorProfiles, setMentorProfiles] = useState<
+    Record<string, MentorDocument>
+  >({});
+  const [actionLoading, setActionLoading] = useState<Record<string, string>>(
+    {}
+  );
+  const [projectPhase, setProjectPhase] = useState<ProjectPhase>("initial");
 
-  // Mentor profiles cache for AI recommendations
-  const [recMentorProfiles, setRecMentorProfiles] = useState<Record<string, MentorDocument>>({});
+  const allRecs: Array<TieredMentorRecommendation & { tierKey: TierKey }> = [
+    ...tiers.previousCollaborations.map((r) => ({
+      ...r,
+      tierKey: "previousCollaborations" as const,
+    })),
+    ...tiers.aiSuggested.map((r) => ({ ...r, tierKey: "aiSuggested" as const })),
+    ...tiers.interested.map((r) => ({ ...r, tierKey: "interested" as const })),
+  ];
 
-  // Fetch interested mentors
-  const fetchInterestedMentors = useCallback(async () => {
-    if (!user || user.role !== "startup") return;
-
-    setInterestedLoading(true);
-    const result = await getInterestedMentors(user.entityId);
-
-    if (result.data) {
-      // Fetch mentor profiles for each interest
-      const mentorsWithProfiles = await Promise.all(
-        result.data.map(async (interest) => {
-          const mentorResult = await getMentorById(interest.mentorId);
-          return mentorResult.data
-            ? { interest, mentor: mentorResult.data }
-            : null;
-        })
-      );
-
-      setInterestedMentors(
-        mentorsWithProfiles.filter(Boolean) as Array<{
-          interest: InterestRecord;
-          mentor: MentorDocument;
-        }>
-      );
+  // Fetch project phase
+  useEffect(() => {
+    async function fetchPhase() {
+      if (!user || user.role !== "startup") return;
+      const result = await getStartupById(user.entityId);
+      if (result.data?.projectPhase) {
+        setProjectPhase(result.data.projectPhase);
+      }
     }
-
-    setInterestedLoading(false);
+    fetchPhase();
   }, [user]);
 
-  // Fetch mentor profiles for AI recommendations
   useEffect(() => {
-    async function fetchProfiles() {
+    async function loadProfiles() {
       const profiles: Record<string, MentorDocument> = {};
-      for (const rec of recommendations) {
-        if (!recMentorProfiles[rec.mentorId]) {
+      for (const rec of allRecs) {
+        if (!mentorProfiles[rec.mentorId]) {
           const result = await getMentorById(rec.mentorId);
-          if (result.data) {
-            profiles[rec.mentorId] = result.data;
-          }
+          if (result.data) profiles[rec.mentorId] = result.data;
         }
       }
       if (Object.keys(profiles).length > 0) {
-        setRecMentorProfiles((prev) => ({ ...prev, ...profiles }));
+        setMentorProfiles((prev) => ({ ...prev, ...profiles }));
       }
     }
-    if (recommendations.length > 0) {
-      fetchProfiles();
-    }
-  }, [recommendations]);
+    if (allRecs.length > 0) loadProfiles();
+  }, [allRecs.length, tiers, mentorProfiles]);
 
-  useEffect(() => {
-    fetchInterestedMentors();
-  }, [fetchInterestedMentors]);
-
-  // Accept mentor handler
-  async function handleAccept(mentorId: string, source: "ai_recommendation" | "mentor_interest") {
+  async function handleAccept(mentorId: string, tierKey: TierKey) {
     if (!user) return;
-
+    const meta = tierMeta[tierKey];
     setActionLoading((prev) => ({ ...prev, [mentorId]: "accept" }));
 
-    const result = await acceptMentor(user.entityId, mentorId, user.id, source);
+    const result = await acceptMentor(
+      user.entityId,
+      mentorId,
+      user.id,
+      meta.acceptSource
+    );
 
     setActionLoading((prev) => {
       const next = { ...prev };
@@ -104,22 +116,40 @@ export default function StartupDashboardPage() {
       return;
     }
 
-    toast.success("Mentor accepted!");
-
-    // Remove from BOTH lists to avoid duplicates
-    removeRecommendation(mentorId);
-    setInterestedMentors((prev) =>
-      prev.filter((item) => item.interest.mentorId !== mentorId)
-    );
+    toast.success("Mentor accepted! Phase changed to Processing.");
+    // Remove from all tiers to prevent duplicates
+    removeFromTier(mentorId, "previousCollaborations");
+    removeFromTier(mentorId, "aiSuggested");
+    removeFromTier(mentorId, "interested");
+    
+    // Refetch phase after a short delay
+    setTimeout(() => {
+      const fetchPhase = async () => {
+        const result = await getStartupById(user.entityId);
+        if (result.data?.projectPhase) {
+          setProjectPhase(result.data.projectPhase);
+        }
+      };
+      fetchPhase();
+    }, 500);
+    
+    // Refetch tiers after a short delay to ensure Firestore is updated
+    setTimeout(() => {
+      refresh();
+    }, 1000);
   }
 
-  // Reject mentor handler
-  async function handleReject(mentorId: string, source: "ai_recommendation" | "mentor_interest") {
+  async function handleReject(mentorId: string, tierKey: TierKey) {
     if (!user) return;
-
+    const meta = tierMeta[tierKey];
     setActionLoading((prev) => ({ ...prev, [mentorId]: "reject" }));
 
-    const result = await rejectMentor(user.entityId, mentorId, user.id, source);
+    const result = await rejectMentor(
+      user.entityId,
+      mentorId,
+      user.id,
+      meta.acceptSource
+    );
 
     setActionLoading((prev) => {
       const next = { ...prev };
@@ -133,11 +163,47 @@ export default function StartupDashboardPage() {
     }
 
     toast.success("Mentor rejected.");
+    removeFromTier(mentorId, tierKey);
+  }
 
-    // Remove from BOTH lists to avoid duplicates
-    removeRecommendation(mentorId);
-    setInterestedMentors((prev) =>
-      prev.filter((item) => item.interest.mentorId !== mentorId)
+  function renderTier(tierKey: TierKey, items: TieredMentorRecommendation[]) {
+    const meta = tierMeta[tierKey];
+
+    return (
+      <section>
+        <h2 className="text-lg font-semibold mb-4">{meta.title}</h2>
+
+        {!loading && items.length === 0 && (
+          <div className="rounded-md border border-dashed px-4 py-8 text-center">
+            <p className="text-muted-foreground">
+              No mentors in this section yet.
+            </p>
+          </div>
+        )}
+
+        {items.length > 0 && (
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {items.map((rec) => {
+              const mentor = mentorProfiles[rec.mentorId];
+              if (!mentor) return null;
+
+              return (
+                <MentorCard
+                  key={`${tierKey}-${rec.mentorId}`}
+                  mentor={mentor}
+                  compatibilityScore={rec.compatibilityScore}
+                  reasoning={rec.reasoning}
+                  source={meta.source}
+                  onAccept={() => handleAccept(rec.mentorId, tierKey)}
+                  onReject={() => handleReject(rec.mentorId, tierKey)}
+                  isAcceptLoading={actionLoading[rec.mentorId] === "accept"}
+                  isRejectLoading={actionLoading[rec.mentorId] === "reject"}
+                />
+              );
+            })}
+          </div>
+        )}
+      </section>
     );
   }
 
@@ -147,99 +213,45 @@ export default function StartupDashboardPage() {
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Mentor Matching</h1>
           <p className="mt-1 text-muted-foreground">
-            Review AI-suggested mentors and mentors who expressed interest.
+            Previous collaborations first, then AI suggestions, then interested
+            mentors.
           </p>
         </div>
-        <Button variant="outline" size="sm" onClick={refresh} disabled={recsLoading}>
-          <RefreshCw className={`h-4 w-4 ${recsLoading ? "animate-spin" : ""}`} />
+        <Button variant="outline" size="sm" onClick={refresh} disabled={loading}>
+          <RefreshCw className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} />
           Refresh
         </Button>
       </div>
 
-      {/* Section 1: AI Suggested Mentors */}
-      <section>
-        <h2 className="text-lg font-semibold mb-4">AI Suggested Mentors</h2>
+      <div className="rounded-lg border bg-card p-6">
+        <h2 className="text-sm font-semibold mb-4">Project Progress</h2>
+        <ProjectPhaseIndicator currentPhase={projectPhase} />
+      </div>
 
-        {recsLoading && (
-          <div className="flex items-center justify-center py-8">
-            <div className="h-6 w-6 animate-spin rounded-full border-4 border-primary border-t-transparent" />
-          </div>
-        )}
+      {loading && (
+        <div className="flex items-center justify-center py-8">
+          <div className="h-6 w-6 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+        </div>
+      )}
 
-        {recsError && (
-          <div className="rounded-md border border-destructive/50 bg-destructive/10 px-4 py-3 text-sm text-destructive">
-            {recsError.message}
-          </div>
-        )}
+      {error && (
+        <div className="rounded-md border border-destructive/50 bg-destructive/10 px-4 py-3 text-sm text-destructive">
+          {error.message}
+          <p className="mt-1 text-xs">
+            Ensure AI backend is running: cd ai-backend && npm start (port 3001)
+          </p>
+        </div>
+      )}
 
-        {!recsLoading && !recsError && recommendations.length === 0 && (
-          <div className="rounded-md border border-dashed px-4 py-8 text-center">
-            <p className="text-muted-foreground">
-              No AI recommendations available yet. Check back later or click Refresh.
-            </p>
-          </div>
-        )}
-
-        {!recsLoading && recommendations.length > 0 && (
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {recommendations.map((rec) => {
-              const mentor = recMentorProfiles[rec.mentorId];
-              if (!mentor) return null;
-
-              return (
-                <MentorCard
-                  key={rec.id}
-                  mentor={mentor}
-                  compatibilityScore={rec.compatibilityScore}
-                  reasoning={rec.reasoning}
-                  source="ai"
-                  onAccept={() => handleAccept(rec.mentorId, "ai_recommendation")}
-                  onReject={() => handleReject(rec.mentorId, "ai_recommendation")}
-                  isAcceptLoading={actionLoading[rec.mentorId] === "accept"}
-                  isRejectLoading={actionLoading[rec.mentorId] === "reject"}
-                />
-              );
-            })}
-          </div>
-        )}
-      </section>
-
-      <Separator />
-
-      {/* Section 2: Mentors Interested */}
-      <section>
-        <h2 className="text-lg font-semibold mb-4">Mentors Interested</h2>
-
-        {interestedLoading && (
-          <div className="flex items-center justify-center py-8">
-            <div className="h-6 w-6 animate-spin rounded-full border-4 border-primary border-t-transparent" />
-          </div>
-        )}
-
-        {!interestedLoading && interestedMentors.length === 0 && (
-          <div className="rounded-md border border-dashed px-4 py-8 text-center">
-            <p className="text-muted-foreground">
-              No mentors have expressed interest yet.
-            </p>
-          </div>
-        )}
-
-        {!interestedLoading && interestedMentors.length > 0 && (
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {interestedMentors.map(({ interest, mentor }) => (
-              <MentorCard
-                key={interest.id}
-                mentor={mentor}
-                source="interest"
-                onAccept={() => handleAccept(interest.mentorId, "mentor_interest")}
-                onReject={() => handleReject(interest.mentorId, "mentor_interest")}
-                isAcceptLoading={actionLoading[interest.mentorId] === "accept"}
-                isRejectLoading={actionLoading[interest.mentorId] === "reject"}
-              />
-            ))}
-          </div>
-        )}
-      </section>
+      {!loading && !error && (
+        <>
+          {renderTier("previousCollaborations", tiers.previousCollaborations)}
+          <Separator />
+          {renderTier("aiSuggested", tiers.aiSuggested)}
+          <Separator />
+          {renderTier("interested", tiers.interested)}
+        </>
+      )}
     </div>
   );
 }

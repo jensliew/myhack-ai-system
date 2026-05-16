@@ -14,6 +14,7 @@ import {
   mentorInterestsCollection,
   aiRecommendationsCollection,
   engagementHistoryCollection,
+  startupsCollection,
 } from "@/firebase/collections";
 import type { ServiceResult } from "@/types/common.types";
 import type {
@@ -25,6 +26,7 @@ import type {
 /**
  * Accepts a mentor for a startup, creating an active relationship.
  * Records the acceptance in engagement_history.
+ * Automatically changes project phase to "processing".
  */
 export async function acceptMentor(
   startupId: string,
@@ -43,6 +45,7 @@ export async function acceptMentor(
       source,
       engagementScore: 0,
       meetingCount: 0,
+      phase: "processing",
       lastInteraction: now,
       createdAt: now,
       updatedAt: now,
@@ -66,6 +69,12 @@ export async function acceptMentor(
       createdAt: now,
     };
     await addDoc(engagementHistoryCollection, engagementData);
+
+    // Update startup project phase to "processing"
+    await updateDoc(doc(startupsCollection, startupId), {
+      projectPhase: "processing",
+      updatedAt: now,
+    });
 
     return {
       data: { ...relationshipData, id: relRef.id } as RelationshipRecord,

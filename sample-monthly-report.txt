@@ -1,0 +1,113 @@
+MONTHLY REPORT - MAY 2026
+=========================
+
+Startup: SeaTong
+Mentor: Raj Patel (Fundraising & Investor Relations)
+Report Period: May 1-31, 2026
+
+EXECUTIVE SUMMARY
+-----------------
+SeaTong had a strong month with significant progress on product development, market expansion, and fundraising preparation. The team successfully launched beta features and secured initial restaurant partnerships. We're on track to close our seed round by Q3 2026.
+
+KEY METRICS
+-----------
+- Active Users: 150 restaurants, 2,500 consumers
+- Monthly Growth: +45% user growth (vs April)
+- Revenue: $8,500 (8% commission on $106K GMV)
+- Team Size: 6 full-time employees
+- Burn Rate: $35K/month
+- Runway: 8 months (with current funding)
+
+MILESTONES ACHIEVED
+-------------------
+✓ Launched supplier verification beta (May 10)
+✓ Onboarded 15 new restaurant partners
+✓ Completed Series A pitch deck
+✓ Secured 2 warm investor introductions from mentor network
+✓ Implemented real-time order tracking feature
+✓ Achieved 4.8/5 average rating from users
+
+PROGRESS ON GOALS
+------------------
+
+Goal 1: Expand to 5 cities
+Status: ON TRACK
+- Currently operating in Singapore (primary market)
+- Identified Kuala Lumpur as next expansion target
+- Completed market research for KL launch (Q3 2026)
+- Action: Hire local operations manager by June 15
+
+Goal 2: Raise Series A
+Status: ON TRACK
+- Pitch deck completed and reviewed by mentor
+- 5 investor meetings scheduled for June
+- Targeting $2M seed round
+- Action: Finalize financial projections by June 5
+
+Goal 3: Build supply chain network
+Status: EXCEEDING EXPECTATIONS
+- Established partnerships with 3 major fish suppliers
+- Implemented blockchain-based traceability system
+- Reduced supply chain costs by 12%
+- Action: Scale to 10 suppliers by end of Q2
+
+CHALLENGES & BLOCKERS
+---------------------
+1. Regulatory Compliance
+   - Singapore food safety regulations require additional certifications
+   - Impact: 2-week delay in full platform launch
+   - Mitigation: Hired compliance consultant, on track for June approval
+
+2. Team Hiring
+   - Difficulty finding experienced backend engineers in Singapore market
+   - Impact: Product development slightly slower than planned
+   - Mitigation: Expanded search to Malaysia, offering competitive equity packages
+
+3. Customer Acquisition Cost
+   - CAC higher than projected ($45 vs $30 target)
+   - Impact: Affects unit economics
+   - Mitigation: Implementing referral program, targeting 20% reduction by July
+
+FINANCIAL PERFORMANCE
+---------------------
+Revenue: $8,500
+Expenses: $35,000
+Net: -$26,500 (expected for pre-revenue stage)
+
+Burn Rate: $35K/month (improved from $40K in April)
+Runway: 8 months with current $280K funding
+
+TEAM UPDATES
+------------
+- Hired: 1 new backend engineer (started May 15)
+- Promoted: Maria Garcia to CTO (from Lead Engineer)
+- Planned: 2 more engineering hires by July
+
+MENTOR FEEDBACK & GUIDANCE
+---------------------------
+Raj Patel provided valuable guidance on:
+1. Investor pitch strategy - refined messaging around market opportunity
+2. Financial modeling - improved revenue projections and unit economics
+3. Fundraising timeline - recommended accelerating investor meetings to June
+4. Equity structure - advised on option pool sizing for future hires
+
+NEXT MONTH PRIORITIES
+---------------------
+1. Complete regulatory compliance certification
+2. Launch KL market expansion planning
+3. Conduct 5+ investor meetings
+4. Hire 2 backend engineers
+5. Implement referral program
+6. Achieve 200 active restaurants
+
+OVERALL ASSESSMENT
+------------------
+SeaTong is executing well against its goals. The team is focused, the product is gaining traction, and the market opportunity is significant. With successful fundraising in Q2, the startup is well-positioned for rapid growth. Recommend continued focus on product-market fit and investor relations.
+
+Confidence Level: HIGH
+Success Probability: 85%
+
+---
+Report prepared by: Raj Patel
+Date: June 1, 2026
+Next review: July 1, 2026

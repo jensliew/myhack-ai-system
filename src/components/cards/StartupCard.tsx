@@ -53,7 +53,7 @@ export function StartupCard({
       </CardHeader>
 
       <CardContent className="flex-1 space-y-3">
-        <p className="text-sm text-muted-foreground line-clamp-3">
+        <p className="text-sm text-muted-foreground line-clamp-5">
           {startup.description}
         </p>
 

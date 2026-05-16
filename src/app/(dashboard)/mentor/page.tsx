@@ -7,7 +7,7 @@ import { Briefcase, Heart, ArrowRight } from "lucide-react";
 
 import { useAuth } from "@/hooks/useAuth";
 import { useStartupDiscovery } from "@/hooks/useStartupDiscovery";
-import { relationshipsCollection } from "@/firebase/collections";
+import { relationshipsCollection, mentorInterestsCollection } from "@/firebase/collections";
 import { MetricCard } from "@/components/charts/MetricCard";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -18,25 +18,34 @@ export default function MentorDashboardPage() {
   const { user } = useAuth();
   const { allStartups, loading: startupsLoading } = useStartupDiscovery();
   const [activeCount, setActiveCount] = useState(0);
+  const [interestedCount, setInterestedCount] = useState(0);
 
-  const fetchRelationshipCount = useCallback(async () => {
+  const fetchCounts = useCallback(async () => {
     if (!user) return;
     try {
-      const q = query(
+      const activeQ = query(
         relationshipsCollection,
         where("mentorId", "==", user.entityId),
         where("status", "==", "active")
       );
-      const snapshot = await getDocs(q);
-      setActiveCount(snapshot.size);
+      const activeSnapshot = await getDocs(activeQ);
+      setActiveCount(activeSnapshot.size);
+
+      const interestedQ = query(
+        mentorInterestsCollection,
+        where("mentorId", "==", user.entityId),
+        where("status", "==", "pending")
+      );
+      const interestedSnapshot = await getDocs(interestedQ);
+      setInterestedCount(interestedSnapshot.size);
     } catch {
       // Silently fail
     }
   }, [user]);
 
   useEffect(() => {
-    fetchRelationshipCount();
-  }, [fetchRelationshipCount]);
+    fetchCounts();
+  }, [fetchCounts]);
 
   // Show top 6 startups as a preview (no interested button)
   const previewStartups = allStartups.slice(0, 6);
@@ -51,11 +60,16 @@ export default function MentorDashboardPage() {
       </div>
 
       {/* Metrics */}
-      <div className="grid gap-4 sm:grid-cols-3">
+      <div className="grid gap-4 sm:grid-cols-4">
         <MetricCard
           title="Available Startups"
           value={allStartups.length}
           icon={Briefcase}
+        />
+        <MetricCard
+          title="Interested"
+          value={interestedCount}
+          icon={Heart}
         />
         <MetricCard
           title="Active Mentorships"
@@ -70,10 +84,27 @@ export default function MentorDashboardPage() {
         />
       </div>
 
+      {/* AI Matching Link */}
+      <div className="rounded-lg border bg-gradient-to-r from-primary/10 to-primary/5 p-4">
+        <div className="flex items-center justify-between">
+          <div>
+            <h3 className="font-semibold">AI Startup Matching</h3>
+            <p className="text-sm text-muted-foreground mt-1">
+              Get personalized startup recommendations based on your expertise.
+            </p>
+          </div>
+          <Link href="/mentor/matching">
+            <Button size="sm">
+              View Matches <ArrowRight className="h-4 w-4 ml-1" />
+            </Button>
+          </Link>
+        </div>
+      </div>
+
       {/* Recent Startups Preview */}
       <div>
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-semibold">Recent Startups</h2>
+          <h2 className="text-lg font-semibold">Browse Startups</h2>
           <Link href="/mentor/startups">
             <Button variant="ghost" size="sm">
               View All <ArrowRight className="h-4 w-4 ml-1" />
@@ -101,6 +132,25 @@ export default function MentorDashboardPage() {
           </div>
         )}
       </div>
+
+      {/* Interested Startups Link */}
+      {interestedCount > 0 && (
+        <div className="rounded-lg border bg-card p-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <h3 className="font-semibold">Pending Interests</h3>
+              <p className="text-sm text-muted-foreground mt-1">
+                You have {interestedCount} startup{interestedCount !== 1 ? 's' : ''} waiting for your interest response.
+              </p>
+            </div>
+            <Link href="/mentor/interested">
+              <Button variant="outline" size="sm">
+                View <ArrowRight className="h-4 w-4 ml-1" />
+              </Button>
+            </Link>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
