@@ -1,0 +1,57 @@
+{
+  "startups": [
+    {
+      "id": "S1",
+      "startup_name": "PayFlow",
+      "stage": "Seed",
+      "team_size": 4,
+      "goals": ["fundraising", "product-market fit"],
+      "description": "B2B payments for SMEs in Southeast Asia",
+      "industry": "FinTech",
+      "funding_stage": "Pre-seed",
+      "location": "Singapore",
+      "website": "https://payflow.example"
+    },
+    {
+      "id": "S2",
+      "startup_name": "GreenCart",
+      "stage": "Pre-seed",
+      "team_size": 2,
+      "goals": ["growth", "sustainability"],
+      "description": "Eco-friendly grocery delivery",
+      "industry": "E-commerce",
+      "funding_stage": "Bootstrapped",
+      "location": "Malaysia",
+      "website": ""
+    }
+  ],
+  "mentors": [
+    {
+      "id": "M1",
+      "full_name": "Alex Tan",
+      "location": "Singapore",
+      "experience": "8 years in FinTech",
+      "availability": "Available",
+      "expertise": ["FinTech", "fundraising", "B2B SaaS"],
+      "bio": "Helped 5 Seed-stage startups raise Series A. Former VP at a regional bank."
+    },
+    {
+      "id": "M2",
+      "full_name": "Priya Sharma",
+      "location": "India",
+      "experience": "12 years",
+      "availability": "Part Time",
+      "expertise": ["E-commerce", "growth", "marketing"],
+      "bio": "Scaled D2C brands from zero to $10M ARR. Mentors early-stage founders."
+    },
+    {
+      "id": "M3",
+      "full_name": "James Lee",
+      "location": "Singapore",
+      "experience": "3 years",
+      "availability": "Not Available",
+      "expertise": ["AI", "ML"],
+      "bio": "ML engineer; limited mentoring bandwidth."
+    }
+  ]
+}

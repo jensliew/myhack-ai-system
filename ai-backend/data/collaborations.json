@@ -1,0 +1,16 @@
+[
+  {
+    "mentor_id": "M1",
+    "startup_id": "S-PAST-FINTECH",
+    "startup_name": "WalletHub (alumni)",
+    "industry": "FinTech",
+    "stage": "Seed",
+    "engagement_scores": [88, 91, 85],
+    "success_scores": [82, 79, 86],
+    "meeting_minutes_count": 3,
+    "monthly_reports_count": 3,
+    "avg_engagement": 88,
+    "avg_success": 82,
+    "collaboration_score": 87
+  }
+]

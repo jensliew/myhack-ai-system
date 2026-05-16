@@ -1,12 +1,18 @@
 import { NextResponse } from "next/server";
 import { GoogleGenAI } from "@google/genai";
 
-import { GEMINI_MODEL, AI_TIMEOUT_MS } from "@/ai/config";
+import { GEMINI_MODEL } from "@/ai/config";
 import {
   buildVerificationSystemPrompt,
   buildVerificationUserPrompt,
 } from "@/ai/prompts";
 import type { VerificationResult } from "@/types/ai.types";
+import { isAiBackendEnabled } from "@/lib/ai-backend/config";
+import { aiBackendFetch, AiBackendError } from "@/lib/ai-backend/client";
+import {
+  backendVerificationToResult,
+  profileToBackend,
+} from "@/lib/ai-backend/mappers";
 
 interface VerificationRequest {
   applicationId: string;
@@ -18,13 +24,42 @@ interface VerificationRequest {
 export async function POST(request: Request) {
   try {
     const body = (await request.json()) as VerificationRequest;
-    const { applicationId, applicationType, applicationData, documentNames } = body;
+    const { applicationId, applicationType, applicationData, documentNames } =
+      body;
 
     if (!applicationId || !applicationType || !applicationData) {
       return NextResponse.json(
         { error: "applicationId, applicationType, and applicationData are required" },
         { status: 400 }
       );
+    }
+
+    if (isAiBackendEnabled()) {
+      try {
+        const payload = profileToBackend(applicationType, {
+          ...applicationData,
+          documents: documentNames,
+        });
+        const path =
+          applicationType === "startup"
+            ? "/verify-startup"
+            : "/verify-mentor";
+        const backend = await aiBackendFetch<Record<string, unknown>>(path, {
+          method: "POST",
+          body: JSON.stringify(payload),
+        });
+        const mapped = backendVerificationToResult(applicationId, backend);
+        const result: VerificationResult = {
+          ...mapped,
+          createdAt: new Date() as unknown as import("firebase/firestore").Timestamp,
+        };
+        return NextResponse.json(result);
+      } catch (err) {
+        if (err instanceof AiBackendError && err.status < 500) {
+          return NextResponse.json({ error: err.message }, { status: err.status });
+        }
+        console.error("AI backend verification failed, falling back:", err);
+      }
     }
 
     const systemPrompt = buildVerificationSystemPrompt();
@@ -34,7 +69,10 @@ export async function POST(request: Request) {
       documentNames ?? []
     );
 
-    let verificationResult: Omit<VerificationResult, "applicationId" | "modelUsed" | "createdAt">;
+    let verificationResult: Omit<
+      VerificationResult,
+      "applicationId" | "modelUsed" | "createdAt"
+    >;
     let modelUsed: "gemini" | "gemma" = "gemini";
 
     try {
@@ -57,16 +95,18 @@ export async function POST(request: Request) {
       const text = response.text ?? "";
       verificationResult = JSON.parse(text);
     } catch (aiError: unknown) {
-      // Log the actual error for debugging
       console.error("Gemini API error:", aiError);
-      // Fallback: generate a basic verification result
       modelUsed = "gemma";
-      verificationResult = generateFallbackVerification(applicationType, applicationData, documentNames ?? []);
+      verificationResult = generateFallbackVerification(
+        applicationType,
+        applicationData,
+        documentNames ?? []
+      );
     }
 
     const result: VerificationResult = {
       applicationId,
-      recommendation: verificationResult.recommendation as "approve" | "reject" | "pending review",
+      recommendation: verificationResult.recommendation as VerificationResult["recommendation"],
       summary: verificationResult.summary,
       modelUsed,
       createdAt: new Date() as unknown as import("firebase/firestore").Timestamp,
@@ -82,9 +122,6 @@ export async function POST(request: Request) {
   }
 }
 
-/**
- * Fallback verification when AI services are unavailable.
- */
 function generateFallbackVerification(
   applicationType: "startup" | "mentor",
   applicationData: Record<string, unknown>,
@@ -94,7 +131,7 @@ function generateFallbackVerification(
   const hasName = !!applicationData.name;
   const hasDescription = !!applicationData.description || !!applicationData.bio;
 
-  let recommendation: "approve" | "reject" | "pending review" = "pending review";
+  let recommendation: VerificationResult["recommendation"] = "pending review";
   if (hasDocuments && hasName && hasDescription) {
     recommendation = "approve";
   } else if (!hasName) {
@@ -104,12 +141,14 @@ function generateFallbackVerification(
   return {
     recommendation,
     summary: {
-      companyInfo: applicationType === "startup"
-        ? `Startup: ${applicationData.name ?? "Not provided"}`
-        : "",
-      mentorInfo: applicationType === "mentor"
-        ? `Mentor: ${applicationData.name ?? "Not provided"}`
-        : "",
+      companyInfo:
+        applicationType === "startup"
+          ? `Startup: ${applicationData.name ?? "Not provided"}`
+          : "",
+      mentorInfo:
+        applicationType === "mentor"
+          ? `Mentor: ${applicationData.name ?? "Not provided"}`
+          : "",
       industryClassification: (applicationData.industry as string) ?? "Not classified",
       completenessAssessment: hasDocuments
         ? `Application includes ${documentNames.length} document(s). Core fields are ${hasName && hasDescription ? "complete" : "partially complete"}.`
