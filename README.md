@@ -9,34 +9,34 @@ Nexora is an AI-powered ecosystem relationship intelligence platform that automa
 ## Demo & Screenshots
 
 ### Landing Page
-![Landing Page](public/assets/ss/Screenshot%202026-05-17%20at%201.45.53%20AM.png)
+![Landing Page](public/assets/ss/Screenshot%202026-05-17%20at%201.45.53%E2%80%AFAM.png)
 
 ### Registration
-![Registration](public/assets/ss/Screenshot%202026-05-17%20at%201.46.00%20AM.png)
+![Registration](public/assets/ss/Screenshot%202026-05-17%20at%201.46.00%E2%80%AFAM.png)
 
 ### Login
-![Login](public/assets/ss/Screenshot%202026-05-17%20at%201.46.10%20AM.png)
+![Login](public/assets/ss/Screenshot%202026-05-17%20at%201.46.10%E2%80%AFAM.png)
 
 ### Startup Dashboard — AI Mentor Matching
-![Startup Dashboard](public/assets/ss/Screenshot%202026-05-17%20at%201.47.29%20AM.png)
+![Startup Dashboard](public/assets/ss/Screenshot%202026-05-17%20at%201.47.29%E2%80%AFAM.png)
 
 ### Mentor Dashboard — Startup Discovery
-![Mentor Dashboard](public/assets/ss/Screenshot%202026-05-17%20at%201.47.57%20AM.png)
+![Mentor Dashboard](public/assets/ss/Screenshot%202026-05-17%20at%201.47.57%E2%80%AFAM.png)
 
 ### Mentor — Express Interest Confirmation
-![Interest Confirmation](public/assets/ss/Screenshot%202026-05-17%20at%201.48.02%20AM.png)
+![Interest Confirmation](public/assets/ss/Screenshot%202026-05-17%20at%201.48.02%E2%80%AFAM.png)
 
 ### Startup — Mentors Interested Section
-![Mentors Interested](public/assets/ss/Screenshot%202026-05-17%20at%201.48.09%20AM.png)
+![Mentors Interested](public/assets/ss/Screenshot%202026-05-17%20at%201.48.09%E2%80%AFAM.png)
 
 ### Admin — AI Verification
-![AI Verification](public/assets/ss/Screenshot%202026-05-17%20at%201.49.16%20AM.png)
+![AI Verification](public/assets/ss/Screenshot%202026-05-17%20at%201.49.16%E2%80%AFAM.png)
 
 ### Admin — Analytics Dashboard
-![Analytics](public/assets/ss/Screenshot%202026-05-17%20at%202.24.39%20AM.png)
+![Analytics](public/assets/ss/Screenshot%202026-05-17%20at%202.24.39%E2%80%AFAM.png)
 
 ### Profile Management
-![Profile](public/assets/ss/Screenshot%202026-05-17%20at%202.30.33%20AM.png)
+![Profile](public/assets/ss/Screenshot%202026-05-17%20at%202.30.33%E2%80%AFAM.png)
 
 ---
 
