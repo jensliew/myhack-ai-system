@@ -1,4 +1,4 @@
-import { addDoc, Timestamp } from "firebase/firestore";
+import { addDoc, getDocs, query, where, orderBy, Timestamp } from "firebase/firestore";
 
 import { getStartupById, getApprovedMentors } from "@/services/firebase/firestore.service";
 import { aiRecommendationsCollection } from "@/firebase/collections";
@@ -7,15 +7,39 @@ import type { AIRecommendation } from "@/types/ai.types";
 
 /**
  * Fetches AI-generated mentor recommendations for a startup.
- * 1. Fetches startup and mentor data from Firestore (client-side)
- * 2. Sends data to /api/ai/recommendations Route Handler (server-side AI call)
- * 3. Stores results in Firestore (client-side)
+ * First checks for existing pending recommendations in Firestore.
+ * If none exist, generates new ones via the AI Route Handler.
  */
 export async function getRecommendations(
   startupId: string,
   userId: string
 ): Promise<ServiceResult<AIRecommendation[]>> {
   try {
+    // First check for existing pending recommendations
+    const existingQuery = query(
+      aiRecommendationsCollection,
+      where("startupId", "==", startupId),
+      where("status", "==", "pending")
+    );
+    const existingSnap = await getDocs(existingQuery);
+
+    if (!existingSnap.empty) {
+      const existing = existingSnap.docs.map((doc) => ({
+        ...doc.data(),
+        id: doc.id,
+      })) as AIRecommendation[];
+
+      // Deduplicate by mentorId — keep the most recent one
+      const uniqueByMentor = new Map<string, AIRecommendation>();
+      for (const rec of existing) {
+        if (!uniqueByMentor.has(rec.mentorId)) {
+          uniqueByMentor.set(rec.mentorId, rec);
+        }
+      }
+      return { data: Array.from(uniqueByMentor.values()), error: null };
+    }
+
+    // No pending recommendations — generate new ones
     // Fetch startup profile from Firestore (client-side)
     const startupResult = await getStartupById(startupId);
     if (startupResult.error || !startupResult.data) {

@@ -106,14 +106,11 @@ export default function StartupDashboardPage() {
 
     toast.success("Mentor accepted!");
 
-    // Remove from lists
-    if (source === "ai_recommendation") {
-      removeRecommendation(mentorId);
-    } else {
-      setInterestedMentors((prev) =>
-        prev.filter((item) => item.interest.mentorId !== mentorId)
-      );
-    }
+    // Remove from BOTH lists to avoid duplicates
+    removeRecommendation(mentorId);
+    setInterestedMentors((prev) =>
+      prev.filter((item) => item.interest.mentorId !== mentorId)
+    );
   }
 
   // Reject mentor handler
@@ -137,14 +134,11 @@ export default function StartupDashboardPage() {
 
     toast.success("Mentor rejected.");
 
-    // Remove from lists
-    if (source === "ai_recommendation") {
-      removeRecommendation(mentorId);
-    } else {
-      setInterestedMentors((prev) =>
-        prev.filter((item) => item.interest.mentorId !== mentorId)
-      );
-    }
+    // Remove from BOTH lists to avoid duplicates
+    removeRecommendation(mentorId);
+    setInterestedMentors((prev) =>
+      prev.filter((item) => item.interest.mentorId !== mentorId)
+    );
   }
 
   return (

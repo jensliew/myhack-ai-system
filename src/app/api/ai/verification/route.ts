@@ -47,15 +47,17 @@ export async function POST(request: Request) {
 
       const response = await ai.models.generateContent({
         model: GEMINI_MODEL,
-        contents: userPrompt,
-        config: {
-          systemInstruction: systemPrompt,
-          responseMimeType: "application/json",
-        },
+        contents: systemPrompt + "\n\n" + userPrompt + "\n\nRespond with valid JSON only.",
       });
 
       const text = response.text ?? "";
-      verificationResult = JSON.parse(text);
+      // Extract JSON from response (model might wrap it in markdown code blocks)
+      const jsonMatch = text.match(/\{[\s\S]*\}/);
+      if (jsonMatch) {
+        verificationResult = JSON.parse(jsonMatch[0]);
+      } else {
+        throw new Error("No JSON found in response");
+      }
     } catch (aiError: unknown) {
       // Log the actual error for debugging
       console.error("Gemini API error:", aiError);
