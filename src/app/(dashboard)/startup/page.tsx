@@ -7,9 +7,11 @@ import { useAuth } from "@/hooks/useAuth";
 import { useTieredRecommendations } from "@/hooks/useTieredRecommendations";
 import type { TieredMentorRecommendation } from "@/hooks/useTieredRecommendations";
 import { MentorCard } from "@/components/cards/MentorCard";
+import { ProjectPhaseIndicator } from "@/components/ProjectPhaseIndicator";
 import { acceptMentor, rejectMentor } from "@/services/matching/matching.service";
-import { getMentorById } from "@/services/firebase/firestore.service";
+import { getMentorById, getStartupById } from "@/services/firebase/firestore.service";
 import type { MentorDocument } from "@/types/mentor.types";
+import type { ProjectPhase } from "@/types/startup.types";
 import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
 import { RefreshCw } from "lucide-react";
@@ -52,6 +54,7 @@ export default function StartupDashboardPage() {
   const [actionLoading, setActionLoading] = useState<Record<string, string>>(
     {}
   );
+  const [projectPhase, setProjectPhase] = useState<ProjectPhase>("initial");
 
   const allRecs: Array<TieredMentorRecommendation & { tierKey: TierKey }> = [
     ...tiers.previousCollaborations.map((r) => ({
@@ -61,6 +64,18 @@ export default function StartupDashboardPage() {
     ...tiers.aiSuggested.map((r) => ({ ...r, tierKey: "aiSuggested" as const })),
     ...tiers.interested.map((r) => ({ ...r, tierKey: "interested" as const })),
   ];
+
+  // Fetch project phase
+  useEffect(() => {
+    async function fetchPhase() {
+      if (!user || user.role !== "startup") return;
+      const result = await getStartupById(user.entityId);
+      if (result.data?.projectPhase) {
+        setProjectPhase(result.data.projectPhase);
+      }
+    }
+    fetchPhase();
+  }, [user]);
 
   useEffect(() => {
     async function loadProfiles() {
@@ -101,8 +116,27 @@ export default function StartupDashboardPage() {
       return;
     }
 
-    toast.success("Mentor accepted!");
-    removeFromTier(mentorId, tierKey);
+    toast.success("Mentor accepted! Phase changed to Processing.");
+    // Remove from all tiers to prevent duplicates
+    removeFromTier(mentorId, "previousCollaborations");
+    removeFromTier(mentorId, "aiSuggested");
+    removeFromTier(mentorId, "interested");
+    
+    // Refetch phase after a short delay
+    setTimeout(() => {
+      const fetchPhase = async () => {
+        const result = await getStartupById(user.entityId);
+        if (result.data?.projectPhase) {
+          setProjectPhase(result.data.projectPhase);
+        }
+      };
+      fetchPhase();
+    }, 500);
+    
+    // Refetch tiers after a short delay to ensure Firestore is updated
+    setTimeout(() => {
+      refresh();
+    }, 1000);
   }
 
   async function handleReject(mentorId: string, tierKey: TierKey) {
@@ -158,11 +192,7 @@ export default function StartupDashboardPage() {
                   key={`${tierKey}-${rec.mentorId}`}
                   mentor={mentor}
                   compatibilityScore={rec.compatibilityScore}
-                  reasoning={
-                    rec.tierLabel
-                      ? `[${rec.tierLabel}] ${rec.reasoning}`
-                      : rec.reasoning
-                  }
+                  reasoning={rec.reasoning}
                   source={meta.source}
                   onAccept={() => handleAccept(rec.mentorId, tierKey)}
                   onReject={() => handleReject(rec.mentorId, tierKey)}
@@ -191,6 +221,11 @@ export default function StartupDashboardPage() {
           <RefreshCw className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} />
           Refresh
         </Button>
+      </div>
+
+      <div className="rounded-lg border bg-card p-6">
+        <h2 className="text-sm font-semibold mb-4">Project Progress</h2>
+        <ProjectPhaseIndicator currentPhase={projectPhase} />
       </div>
 
       {loading && (

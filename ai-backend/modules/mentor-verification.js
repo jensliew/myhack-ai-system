@@ -1,55 +1,63 @@
-import { callGemini } from "../services/gemini.js";
 import { formatVerificationCard } from "../services/verification-presentation.js";
 import { generateAdminVerificationText } from "./verification-reasoning.js";
 
 export async function verifyMentor(mentor) {
-  const prompt = `
-    You are an AI mentor evaluator for a startup mentorship program.
-
-    Evaluate the mentor using ONLY the given fields (limited form).
-
-    Score each category 0–10:
-    - expertise_depth (breadth and depth of technical/business skills listed)
-    - industry_specialization (relevance and clarity of industry focus)
-    - mentoring_capability (inferred from experience and bio quality)
-    - availability (commitment level - Full Time = 8+ hrs/week, Part Time = 3-8 hrs/week, Limited = <3 hrs/week)
-    - communication_quality (clarity and professionalism of bio)
-    - program_fit (how well they match mentor program goals)
-
-    Also return:
-    - confidence (0–10): how complete and clear the mentor profile is GIVEN THE LIMITED FORM FIELDS
-    - missing_info (array): ONLY list CRITICAL missing info (e.g., mentoring background, success stories, specific industries served). Ignore nice-to-have details.
-
-    Mentor Data:
-    ${JSON.stringify(mentor, null, 2)}
-
-    IMPORTANT:
-    Return ONLY valid JSON. No markdown, no explanation.
-`;
-
-  const raw = await callGemini(prompt);
-  const clean = raw
-    .replace(/```json/g, "")
-    .replace(/```/g, "")
-    .trim();
-
-  const ai = JSON.parse(clean);
-
+  // Rule-based mentor evaluation (no Gemini API calls)
+  
+  // Score each category 0-10 based on available data
+  let expertise_depth = 5;
+  if (mentor.expertise && mentor.expertise.length >= 3) expertise_depth += 3;
+  if (mentor.expertise && mentor.expertise.length >= 5) expertise_depth += 2;
+  
+  let industry_specialization = 5;
+  if (mentor.industrySpecialization && mentor.industrySpecialization.length > 0) industry_specialization += 3;
+  if (mentor.industrySpecialization && mentor.industrySpecialization.length >= 2) industry_specialization += 2;
+  
+  let mentoring_capability = 5;
+  if (mentor.bio && mentor.bio.length > 100) mentoring_capability += 3;
+  if (mentor.mentorshipCount && mentor.mentorshipCount > 5) mentoring_capability += 2;
+  
+  let availability = 5;
+  if (mentor.availability === "full-time") availability = 9;
+  else if (mentor.availability === "part-time") availability = 7;
+  else if (mentor.availability === "limited") availability = 3;
+  
+  let communication_quality = 5;
+  if (mentor.bio && mentor.bio.length > 50) communication_quality += 3;
+  if (mentor.name && mentor.location) communication_quality += 2;
+  
+  let program_fit = 6;
+  if (mentor.expertise && mentor.expertise.some(e => ["Fundraising", "Product Strategy", "Growth"].includes(e))) program_fit += 2;
+  
+  // Calculate confidence based on data completeness
+  let confidence = 5;
+  if (mentor.name) confidence += 1;
+  if (mentor.bio) confidence += 1;
+  if (mentor.expertise && mentor.expertise.length > 0) confidence += 1;
+  if (mentor.industrySpecialization && mentor.industrySpecialization.length > 0) confidence += 1;
+  if (mentor.availability) confidence += 1;
+  
+  // Identify missing info
+  const missing_info = [];
+  if (!mentor.bio || mentor.bio.length < 50) missing_info.push("Detailed mentor bio and background");
+  if (!mentor.expertise || mentor.expertise.length === 0) missing_info.push("Clear expertise areas");
+  if (!mentor.industrySpecialization || mentor.industrySpecialization.length === 0) missing_info.push("Industry specialization");
+  if (!mentor.mentorshipCount) missing_info.push("Mentorship experience count");
+  
   const score =
-    ai.expertise_depth +
-    ai.industry_specialization +
-    ai.mentoring_capability +
-    ai.availability +
-    ai.communication_quality +
-    ai.program_fit;
+    expertise_depth +
+    industry_specialization +
+    mentoring_capability +
+    availability +
+    communication_quality +
+    program_fit;
 
   let recommendation = "REJECT";
-
   if (score < 18) {
     recommendation = "REJECT";
-  } else if (ai.missing_info && ai.missing_info.length > 4) {
+  } else if (missing_info.length > 3) {
     recommendation = "PENDING";
-  } else if (ai.confidence < 6 && score < 40) {
+  } else if (confidence < 6 && score < 40) {
     recommendation = "PENDING";
   } else if (score >= 45) {
     recommendation = "APPROVE";
@@ -59,38 +67,34 @@ export async function verifyMentor(mentor) {
 
   let suggestions = null;
   if (recommendation === "PENDING") {
-    const suggestionsPrompt = `
-You are a startup mentor program evaluator.
-
-This mentor received a PENDING status with the following:
-- Scores: ${JSON.stringify(ai)}
-- Missing Info: ${JSON.stringify(ai.missing_info)}
-- Final Score: ${score}
-
-Provide 3-5 SPECIFIC, ACTIONABLE improvement suggestions to help this mentor move from PENDING to APPROVE.
-
-Format as JSON array of objects:
-{
-  "priority": "High/Medium/Low",
-  "suggestion": "What to do",
-  "expected_impact": "How it helps approval"
-}
-
-Return ONLY valid JSON array. No markdown.
-`;
-
-    const suggestionsRaw = await callGemini(suggestionsPrompt);
-    const suggestionsClean = suggestionsRaw
-      .replace(/```json/g, "")
-      .replace(/```/g, "")
-      .trim();
-
-    try {
-      suggestions = JSON.parse(suggestionsClean);
-    } catch {
-      suggestions = [];
-    }
+    suggestions = [
+      {
+        priority: "High",
+        suggestion: "Write a comprehensive bio highlighting your mentoring experience and success stories",
+        expected_impact: "Demonstrates mentoring capability and builds trust with startups"
+      },
+      {
+        priority: "High",
+        suggestion: "Clearly list your areas of expertise and industry specialization",
+        expected_impact: "Helps match you with startups that need your specific skills"
+      },
+      {
+        priority: "Medium",
+        suggestion: "Specify your availability and commitment level",
+        expected_impact: "Sets clear expectations for mentorship engagement"
+      }
+    ];
   }
+
+  const ai = {
+    expertise_depth,
+    industry_specialization,
+    mentoring_capability,
+    availability,
+    communication_quality,
+    program_fit,
+    confidence
+  };
 
   const adminText = await generateAdminVerificationText({
     role: "mentor",
@@ -98,7 +102,7 @@ Return ONLY valid JSON array. No markdown.
     recommendation,
     ai_scores: ai,
     final_score: score,
-    missing_info: ai.missing_info,
+    missing_info,
   });
 
   return formatVerificationCard({
@@ -107,8 +111,8 @@ Return ONLY valid JSON array. No markdown.
     recommendation,
     ai_scores: ai,
     final_score: score,
-    confidence: ai.confidence,
-    missing_info: ai.missing_info,
+    confidence,
+    missing_info,
     improvement_suggestions: suggestions,
     ai_reasoning: adminText.ai_reasoning,
     industry_summary: adminText.industry_summary,

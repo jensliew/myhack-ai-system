@@ -26,6 +26,7 @@ export function useDocuments() {
     if (!user || user.role !== "startup") return;
 
     setLoading(true);
+    setError(null);
     const result = await getDocuments(user.entityId);
 
     if (result.error) {
@@ -35,11 +36,12 @@ export function useDocuments() {
     }
 
     setLoading(false);
-  }, [user]);
+  }, [user?.entityId, user?.role]);
 
   useEffect(() => {
+    if (!user) return;
     fetchDocuments();
-  }, [fetchDocuments]);
+  }, [user?.entityId, fetchDocuments]);
 
   const handleUpload = useCallback(
     async (params: Omit<DocumentUploadParams, "startupId" | "uploadedBy">) => {
@@ -63,9 +65,14 @@ export function useDocuments() {
       if (result.data) {
         setDocuments((prev) => [result.data!, ...prev]);
         toast.success("Document uploaded successfully.");
+        
+        // Refetch documents after a short delay to ensure Firestore is updated
+        setTimeout(() => {
+          fetchDocuments();
+        }, 1000);
       }
     },
-    [user]
+    [user, fetchDocuments]
   );
 
   const handleDelete = useCallback(

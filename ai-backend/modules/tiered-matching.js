@@ -75,6 +75,8 @@ function tagTier2Cards(cards) {
 /**
  * Startup mentor discovery — display order:
  * 1) Previous collaborations  2) AI suggested  3) Interested mentors
+ * 
+ * Active mentors are excluded from previous collaborations to prevent duplicates.
  */
 export async function getTieredMentorRecommendations(
   startup,
@@ -86,15 +88,20 @@ export async function getTieredMentorRecommendations(
     limit = 10,
     explainTop = 3,
     interested_mentor_ids = null,
+    active_mentor_ids = [],
   } = options;
 
   const usedIds = new Set();
+  const activeMentorIdSet = new Set(active_mentor_ids || []);
 
   const collabRanked = rankMentorsByPastCollaboration(startup, mentors);
-  const previous_collaborations = collabRanked.map((entry) => {
-    usedIds.add(entry.mentor_id);
-    return formatCollaborationCard(entry, startup);
-  });
+  // Filter out active mentors from previous collaborations
+  const previous_collaborations = collabRanked
+    .filter((entry) => !activeMentorIdSet.has(entry.mentor_id))
+    .map((entry) => {
+      usedIds.add(entry.mentor_id);
+      return formatCollaborationCard(entry, startup);
+    });
 
   const remainingForAi = mentors.filter((m) => !usedIds.has(mentorId(m)));
   const ai_suggested = tagTier2Cards(

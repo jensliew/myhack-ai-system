@@ -5,12 +5,70 @@
     "startup_name": "WalletHub (alumni)",
     "industry": "FinTech",
     "stage": "Seed",
-    "engagement_scores": [88, 91, 85],
-    "success_scores": [82, 79, 86],
+    "engagement_scores": [
+      88,
+      91,
+      85
+    ],
+    "success_scores": [
+      82,
+      79,
+      86
+    ],
     "meeting_minutes_count": 3,
     "monthly_reports_count": 3,
     "avg_engagement": 88,
     "avg_success": 82,
     "collaboration_score": 87
+  },
+  {
+    "mentor_id": "system-analysis",
+    "startup_id": "SEATONG01",
+    "startup_name": null,
+    "industry": null,
+    "stage": null,
+    "engagement_scores": [
+      85,
+      85,
+      85,
+      85
+    ],
+    "success_scores": [],
+    "meeting_minutes_count": 4,
+    "monthly_reports_count": 0,
+    "avg_engagement": 85,
+    "avg_success": null,
+    "collaboration_score": 93,
+    "last_meeting_analysis": {
+      "at": "2026-05-16T16:48:28.087Z",
+      "engagement_score": 85,
+      "interaction_quality": "high",
+      "summary": "Meeting between mentor and startup covered key topics including Product and Market. Engagement level: high."
+    }
+  },
+  {
+    "mentor_id": "raj-patel",
+    "startup_id": "SEATONG01",
+    "startup_name": null,
+    "industry": null,
+    "stage": null,
+    "engagement_scores": [
+      85,
+      85,
+      85,
+      85
+    ],
+    "success_scores": [],
+    "meeting_minutes_count": 4,
+    "monthly_reports_count": 0,
+    "avg_engagement": 85,
+    "avg_success": null,
+    "collaboration_score": 93,
+    "last_meeting_analysis": {
+      "at": "2026-05-16T17:13:57.387Z",
+      "engagement_score": 85,
+      "interaction_quality": "high",
+      "summary": "Meeting between mentor and startup covered key topics including Product and Market. Engagement level: high."
+    }
   }
 ]

@@ -1,55 +1,62 @@
-import { callGemini } from "../services/gemini.js";
 import { formatVerificationCard } from "../services/verification-presentation.js";
 import { generateAdminVerificationText } from "./verification-reasoning.js";
 
 export async function verifyStartup(startup) {
-  const prompt = `
-    You are an AI startup evaluator.
-
-    Evaluate the startup using ONLY the given fields (limited form).
-
-    Score each category 0–10:
-    - idea_quality (based on problem + solution clarity)
-    - market_potential (based on industry + looking_for)
-    - stage_maturity (based on startup stage + team size)
-    - execution_capability (based on team strength)
-    - risk_level (higher = more risky startup)
-    - ecosystem_fit (how well it fits a mentor-startup ecosystem)
-
-    Also return:
-    - confidence (0–10): how complete and clear the data is GIVEN THE LIMITED FORM FIELDS
-    - missing_info (array): ONLY list CRITICAL missing info that should be asked in the form (e.g., founder experience, MVP status, revenue). Ignore nice-to-have details.
-
-    Startup Data:
-    ${JSON.stringify(startup, null, 2)}
-
-    IMPORTANT:
-    Return ONLY valid JSON. No markdown, no explanation.
-`;
-
-  const raw = await callGemini(prompt);
-  const clean = raw
-    .replace(/```json/g, "")
-    .replace(/```/g, "")
-    .trim();
-
-  const ai = JSON.parse(clean);
-
+  // Rule-based startup evaluation (no Gemini API calls)
+  
+  // Score each category 0-10 based on available data
+  let idea_quality = 5;
+  if (startup.description && startup.description.length > 50) idea_quality += 3;
+  if (startup.goals && startup.goals.length > 0) idea_quality += 2;
+  
+  let market_potential = 5;
+  if (startup.industry) market_potential += 2;
+  if (startup.goals && startup.goals.includes("Scale") || startup.goals.includes("Expand")) market_potential += 3;
+  
+  let stage_maturity = 5;
+  if (startup.stage === "seed" || startup.stage === "series-a") stage_maturity += 3;
+  if (startup.teamSize && startup.teamSize >= 5) stage_maturity += 2;
+  
+  let execution_capability = 5;
+  if (startup.teamSize && startup.teamSize >= 3) execution_capability += 3;
+  if (startup.website) execution_capability += 2;
+  
+  let risk_level = 3;
+  if (startup.stage === "idea") risk_level += 3;
+  if (!startup.description || startup.description.length < 20) risk_level += 2;
+  
+  let ecosystem_fit = 6;
+  if (startup.industry && ["FinTech", "HealthTech", "EdTech", "SaaS"].includes(startup.industry)) ecosystem_fit += 2;
+  
+  // Calculate confidence based on data completeness
+  let confidence = 5;
+  if (startup.name) confidence += 1;
+  if (startup.description) confidence += 1;
+  if (startup.industry) confidence += 1;
+  if (startup.teamSize) confidence += 1;
+  if (startup.goals && startup.goals.length > 0) confidence += 1;
+  
+  // Identify missing info
+  const missing_info = [];
+  if (!startup.description || startup.description.length < 50) missing_info.push("Detailed business description");
+  if (!startup.teamSize) missing_info.push("Team size information");
+  if (!startup.website) missing_info.push("Website or online presence");
+  if (!startup.goals || startup.goals.length === 0) missing_info.push("Clear business goals");
+  
   const score =
-    ai.idea_quality +
-    ai.market_potential +
-    ai.stage_maturity +
-    ai.execution_capability +
-    ai.ecosystem_fit -
-    ai.risk_level;
+    idea_quality +
+    market_potential +
+    stage_maturity +
+    execution_capability +
+    ecosystem_fit -
+    risk_level;
 
   let recommendation = "REJECT";
-
   if (score < 12) {
     recommendation = "REJECT";
-  } else if (ai.missing_info && ai.missing_info.length > 5) {
+  } else if (missing_info.length > 3) {
     recommendation = "PENDING";
-  } else if (ai.confidence < 6 && score < 35) {
+  } else if (confidence < 6 && score < 35) {
     recommendation = "PENDING";
   } else if (score >= 38) {
     recommendation = "APPROVE";
@@ -59,38 +66,34 @@ export async function verifyStartup(startup) {
 
   let suggestions = null;
   if (recommendation === "PENDING") {
-    const suggestionsPrompt = `
-You are a startup mentor evaluator.
-
-This startup received a PENDING status with the following:
-- Scores: ${JSON.stringify(ai)}
-- Missing Info: ${JSON.stringify(ai.missing_info)}
-- Final Score: ${score}
-
-Provide 3-5 SPECIFIC, ACTIONABLE improvement suggestions to help this startup move from PENDING to APPROVE.
-
-Format as JSON array of objects:
-{
-  "priority": "High/Medium/Low",
-  "suggestion": "What to do",
-  "expected_impact": "How it helps approval"
-}
-
-Return ONLY valid JSON array. No markdown.
-`;
-
-    const suggestionsRaw = await callGemini(suggestionsPrompt);
-    const suggestionsClean = suggestionsRaw
-      .replace(/```json/g, "")
-      .replace(/```/g, "")
-      .trim();
-
-    try {
-      suggestions = JSON.parse(suggestionsClean);
-    } catch {
-      suggestions = [];
-    }
+    suggestions = [
+      {
+        priority: "High",
+        suggestion: "Provide a detailed business description explaining the problem and solution",
+        expected_impact: "Helps mentors understand your vision and provide better guidance"
+      },
+      {
+        priority: "High",
+        suggestion: "Clearly define your team size and key roles",
+        expected_impact: "Demonstrates execution capability and organizational structure"
+      },
+      {
+        priority: "Medium",
+        suggestion: "Set specific, measurable business goals",
+        expected_impact: "Shows strategic thinking and helps match with relevant mentors"
+      }
+    ];
   }
+
+  const ai = {
+    idea_quality,
+    market_potential,
+    stage_maturity,
+    execution_capability,
+    risk_level,
+    ecosystem_fit,
+    confidence
+  };
 
   const adminText = await generateAdminVerificationText({
     role: "startup",
@@ -98,7 +101,7 @@ Return ONLY valid JSON array. No markdown.
     recommendation,
     ai_scores: ai,
     final_score: score,
-    missing_info: ai.missing_info,
+    missing_info,
   });
 
   return formatVerificationCard({
@@ -107,8 +110,8 @@ Return ONLY valid JSON array. No markdown.
     recommendation,
     ai_scores: ai,
     final_score: score,
-    confidence: ai.confidence,
-    missing_info: ai.missing_info,
+    confidence,
+    missing_info,
     improvement_suggestions: suggestions,
     ai_reasoning: adminText.ai_reasoning,
     industry_summary: adminText.industry_summary,

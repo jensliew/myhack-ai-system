@@ -5,7 +5,9 @@ import { fileURLToPath } from "url";
 import { dirname, join } from "path";
 import { verifyStartup } from "./modules/startup-verification.js";
 import { verifyMentor } from "./modules/mentor-verification.js";
+import { getTieredMentorRecommendations } from "./modules/tiered-matching.js";
 import {
+  getTieredStartupRecommendations,
   matchMentorsForStartup,
   matchStartupsForMentor,
 } from "./modules/matching.js";
@@ -15,7 +17,6 @@ import {
   getInterestedMentors,
 } from "./services/interest-store.js";
 import { calculateMatchScore } from "./services/matching.js";
-import { getTieredMentorRecommendations } from "./modules/tiered-matching.js";
 import {
   processMeetingMinutes,
   processMonthlyReport,
@@ -30,6 +31,19 @@ const sample = JSON.parse(
 
 const app = express();
 app.use(express.json());
+
+// Enable CORS for localhost development
+app.use((req, res, next) => {
+  res.header("Access-Control-Allow-Origin", "http://localhost:3001");
+  res.header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
+  res.header("Access-Control-Allow-Headers", "Content-Type, Authorization");
+  res.header("Access-Control-Allow-Credentials", "true");
+  
+  if (req.method === "OPTIONS") {
+    return res.sendStatus(200);
+  }
+  next();
+});
 
 app.post("/verify-startup", async (req, res) => {
   const result = await verifyStartup(req.body);
@@ -127,6 +141,57 @@ app.get("/match/mentors/tiered/:startupId", async (req, res) => {
     const limit = Number(req.query.limit) || 10;
     const result = await getTieredMentorRecommendations(startup, mentors, {
       startup_id: req.params.startupId,
+      limit,
+      explainTop,
+    });
+    res.json(result);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+/**
+ * Tiered startup list for mentor (recommended UX):
+ * 1) previous_collaborations  2) ai_suggested  3) interested
+ */
+app.post("/match/startups/tiered", async (req, res) => {
+  try {
+    const {
+      mentor,
+      startups,
+      mentor_id,
+      limit,
+      explainTop,
+      interested_startup_ids,
+    } = req.body;
+    if (!mentor || !startups?.length) {
+      return res.status(400).json({ error: "mentor and startups[] required" });
+    }
+    const result = await getTieredStartupRecommendations(mentor, startups, {
+      mentor_id: mentor_id ?? mentor.id,
+      limit: limit ?? 10,
+      explainTop: explainTop ?? 3,
+      interested_startup_ids,
+    });
+    res.json(result);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.get("/match/startups/tiered/:mentorId", async (req, res) => {
+  try {
+    const mentor =
+      req.body?.mentor ??
+      sample.mentors.find((m) => m.id === req.params.mentorId);
+    if (!mentor) {
+      return res.status(404).json({ error: "Mentor not found" });
+    }
+    const startups = req.body?.startups ?? sample.startups;
+    const explainTop = Number(req.query.explainTop) ?? 3;
+    const limit = Number(req.query.limit) || 10;
+    const result = await getTieredStartupRecommendations(mentor, startups, {
+      mentor_id: req.params.mentorId,
       limit,
       explainTop,
     });

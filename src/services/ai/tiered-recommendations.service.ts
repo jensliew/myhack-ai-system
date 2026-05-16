@@ -1,4 +1,4 @@
-import { getStartupById, getApprovedMentors } from "@/services/firebase/firestore.service";
+import { getStartupById, getApprovedMentors, getActiveRelationships } from "@/services/firebase/firestore.service";
 import { getInterestedMentorsForStartup } from "@/services/matching/interest.service";
 import type { ServiceResult } from "@/types/common.types";
 
@@ -53,6 +53,11 @@ export async function getTieredRecommendations(
     const interestedMentorIds =
       interestedResult.data?.map((i) => i.mentorId) ?? [];
 
+    // Get active relationships to exclude from previous collaborations
+    const activeRelResult = await getActiveRelationships(startupId);
+    const activeMentorIds =
+      activeRelResult.data?.map((r) => r.mentorId) ?? [];
+
     const response = await fetch("/api/ai/recommendations/tiered", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -60,6 +65,7 @@ export async function getTieredRecommendations(
         startup: startupResult.data,
         mentors: mentorsResult.data.mentors,
         interestedMentorIds,
+        activeMentorIds,
         explainTop: 3,
       }),
     });

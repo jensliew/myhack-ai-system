@@ -6,14 +6,16 @@ import {
   orderBy,
   limit,
   startAfter,
+  where,
   type DocumentSnapshot,
   type QueryConstraint,
 } from "firebase/firestore";
 
-import { startupsCollection, mentorsCollection } from "@/firebase/collections";
+import { startupsCollection, mentorsCollection, relationshipsCollection } from "@/firebase/collections";
 import type { ServiceResult } from "@/types/common.types";
 import type { StartupDocument } from "@/types/startup.types";
 import type { MentorDocument } from "@/types/mentor.types";
+import type { RelationshipRecord } from "@/types/matching.types";
 
 /**
  * Default page size for paginated queries.
@@ -236,5 +238,40 @@ function mapFirestoreError(error: unknown): {
         message: "An unexpected error occurred while fetching data.",
         retryable: true,
       };
+  }
+}
+
+/**
+ * Fetches active relationships for a startup.
+ * Used to exclude active mentors from previous collaborations list.
+ *
+ * @param startupId - The startup ID
+ * @returns ServiceResult containing active relationships
+ */
+export async function getActiveRelationships(
+  startupId: string
+): Promise<ServiceResult<RelationshipRecord[]>> {
+  try {
+    const q = query(
+      relationshipsCollection,
+      where("startupId", "==", startupId),
+      where("status", "==", "active")
+    );
+    const snapshot = await getDocs(q);
+
+    const relationships: RelationshipRecord[] = snapshot.docs.map((docSnap) => {
+      const data = docSnap.data();
+      return { ...data, id: docSnap.id } as RelationshipRecord;
+    });
+
+    return {
+      data: relationships,
+      error: null,
+    };
+  } catch (error: unknown) {
+    return {
+      data: null,
+      error: mapFirestoreError(error),
+    };
   }
 }

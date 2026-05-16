@@ -204,21 +204,22 @@ export default function MentorStartupsPage() {
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Express Interest?</DialogTitle>
-            <DialogDescription>
-              {confirmStartup && (
-                <>
-                  You are about to express mentorship interest in <strong>{confirmStartup.name}</strong>.
-                  <br /><br />
-                  What happens next:
-                  <ul className="list-disc pl-5 mt-2 space-y-1 text-left">
-                    <li>The startup will see your profile in their &quot;Mentors Interested&quot; section</li>
-                    <li>They can review your expertise and decide to accept or reject</li>
-                    <li>If accepted, a mentorship relationship will be created</li>
-                  </ul>
-                </>
-              )}
-            </DialogDescription>
           </DialogHeader>
+          {confirmStartup && (
+            <div className="space-y-4">
+              <p className="text-sm text-muted-foreground">
+                You are about to express mentorship interest in <strong>{confirmStartup.name}</strong>.
+              </p>
+              <div className="text-sm text-muted-foreground">
+                <p className="font-medium mb-2">What happens next:</p>
+                <ul className="list-disc pl-5 space-y-1">
+                  <li>The startup will see your profile in their &quot;Mentors Interested&quot; section</li>
+                  <li>They can review your expertise and decide to accept or reject</li>
+                  <li>If accepted, a mentorship relationship will be created</li>
+                </ul>
+              </div>
+            </div>
+          )}
           <DialogFooter>
             <Button variant="outline" onClick={() => setConfirmStartupId(null)}>
               Cancel

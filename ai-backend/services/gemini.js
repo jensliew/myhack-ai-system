@@ -4,8 +4,11 @@ import dotenv from "dotenv";
 dotenv.config();
 
 export async function callGemini(prompt) {
+  // Use gemini-2.0-flash which is the latest stable model
+  const model = process.env.GEMINI_MODEL || "gemini-2.0-flash";
+  
   const response = await axios.post(
-    `https://generativelanguage.googleapis.com/v1/models/gemini-2.5-flash:generateContent?key=${process.env.GEMINI_API_KEY}`,
+    `https://generativelanguage.googleapis.com/v1/models/${model}:generateContent?key=${process.env.GEMINI_API_KEY}`,
     {
       contents: [
         {
