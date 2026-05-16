@@ -54,7 +54,7 @@ export async function getTieredStartupRecommendations(
       interestedResult.data?.map((i) => i.startupId) ?? [];
 
     // Call AI backend directly (rule-based matching, no API quota needed)
-    const response = await fetch("http://localhost:3002/match/startups/tiered", {
+    const response = await fetch("http://localhost:3001/match/startups/tiered", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -125,7 +125,7 @@ export async function getTieredStartupRecommendations(
       data: null,
       error: {
         code: "ai/network-error",
-        message: "Network error. Is the AI backend running on port 3002?",
+        message: "Network error. Is the AI backend running on port 3001?",
         retryable: true,
       },
     };

@@ -172,7 +172,7 @@ export default function MentorMatchingPage() {
         <div className="rounded-md border border-destructive/50 bg-destructive/10 px-4 py-3 text-sm text-destructive">
           {error.message}
           <p className="mt-1 text-xs">
-            Ensure AI backend is running: cd ai-backend && npm start (port 3002)
+            Ensure AI backend is running: cd ai-backend && npm start (port 3001)
           </p>
         </div>
       )}
