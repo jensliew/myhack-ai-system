@@ -6,6 +6,40 @@ Nexora is an AI-powered ecosystem relationship intelligence platform that automa
 
 ---
 
+## Demo & Screenshots
+
+### Landing Page
+![Landing Page](public/assets/ss/Screenshot%202026-05-17%20at%201.45.53%20AM.png)
+
+### Registration
+![Registration](public/assets/ss/Screenshot%202026-05-17%20at%201.46.00%20AM.png)
+
+### Login
+![Login](public/assets/ss/Screenshot%202026-05-17%20at%201.46.10%20AM.png)
+
+### Startup Dashboard — AI Mentor Matching
+![Startup Dashboard](public/assets/ss/Screenshot%202026-05-17%20at%201.47.29%20AM.png)
+
+### Mentor Dashboard — Startup Discovery
+![Mentor Dashboard](public/assets/ss/Screenshot%202026-05-17%20at%201.47.57%20AM.png)
+
+### Mentor — Express Interest Confirmation
+![Interest Confirmation](public/assets/ss/Screenshot%202026-05-17%20at%201.48.02%20AM.png)
+
+### Startup — Mentors Interested Section
+![Mentors Interested](public/assets/ss/Screenshot%202026-05-17%20at%201.48.09%20AM.png)
+
+### Admin — AI Verification
+![AI Verification](public/assets/ss/Screenshot%202026-05-17%20at%201.49.16%20AM.png)
+
+### Admin — Analytics Dashboard
+![Analytics](public/assets/ss/Screenshot%202026-05-17%20at%202.24.39%20AM.png)
+
+### Profile Management
+![Profile](public/assets/ss/Screenshot%202026-05-17%20at%202.30.33%20AM.png)
+
+---
+
 ## Main Goal
 
 To create a scalable AI-powered ecosystem operating system that continuously learns from ecosystem interactions to improve mentorship quality, ecosystem scalability, and innovation outcomes.
@@ -33,50 +67,53 @@ To create a scalable AI-powered ecosystem operating system that continuously lea
 | Authentication | Firebase Authentication (Email/Password) |
 | Database | Cloud Firestore |
 | File Storage | Firebase Storage |
-| AI Engine | Google Gemini API (gemma-4-31b-it) |
+| AI Engine | Google Gemini API (gemma-4-31b-it) via dedicated Express backend |
+| AI Backend | Express.js (rule-based matching + Gemini-powered explanations) |
 | Testing | Vitest, React Testing Library, fast-check |
-| Deployment | Vercel (planned) |
+| Deployment | Vercel (frontend) + Railway/Render (AI backend) |
 
 ---
 
 ## System Architecture
 
 ```
-┌─────────────────────────────────────────────────────────┐
-│                    Next.js App (Browser)                  │
-│  ┌──────────┐  ┌──────────┐  ┌──────────┐  ┌────────┐ │
-│  │    UI    │  │  Zustand  │  │  Hooks   │  │Services│ │
-│  │(shadcn)  │  │  Stores   │  │          │  │        │ │
-│  └──────────┘  └──────────┘  └──────────┘  └────────┘ │
-└───────────────────────┬─────────────────────────────────┘
-                        │
-          ┌─────────────┼─────────────┐
-          │             │             │
-          ▼             ▼             ▼
-┌──────────────┐ ┌───────────┐ ┌──────────────┐
-│   Firebase   │ │  Firebase │ │   Firebase   │
-│     Auth     │ │ Firestore │ │   Storage    │
-└──────────────┘ └───────────┘ └──────────────┘
-                        │
-                        ▼
-          ┌──────────────────────────┐
-          │  Next.js Route Handlers  │
-          │   (AI Proxy - Server)    │
-          └────────────┬─────────────┘
-                       │
-                       ▼
-              ┌─────────────────┐
-              │   Gemini API    │
-              │ (gemma-4-31b-it)│
-              └─────────────────┘
+┌─────────────────────────────────────────────────────────────┐
+│              Next.js App (Browser - Port 3000)                │
+│  ┌──────────┐  ┌──────────┐  ┌──────────┐  ┌────────────┐ │
+│  │    UI    │  │  Zustand  │  │  Hooks   │  │  Services  │ │
+│  │(shadcn)  │  │  Stores   │  │          │  │            │ │
+│  └──────────┘  └──────────┘  └──────────┘  └────────────┘ │
+└───────────────────────┬──────────────────────┬──────────────┘
+                        │                      │
+          ┌─────────────┼──────────┐           │
+          │             │          │           │
+          ▼             ▼          ▼           ▼
+┌──────────────┐ ┌───────────┐ ┌────────┐ ┌──────────────────┐
+│   Firebase   │ │  Firebase │ │Firebase│ │  Next.js Route   │
+│     Auth     │ │ Firestore │ │Storage │ │    Handlers      │
+└──────────────┘ └───────────┘ └────────┘ │  (AI Proxy)      │
+                                           └────────┬─────────┘
+                                                    │
+                                                    ▼
+                                    ┌──────────────────────────┐
+                                    │   AI Backend (Port 3001) │
+                                    │   Express.js Server      │
+                                    │                          │
+                                    │  • Tiered Matching       │
+                                    │  • Verification          │
+                                    │  • Document Analysis     │
+                                    │  • Score Calculation     │
+                                    │  • Gemini API Calls      │
+                                    └──────────────────────────┘
 ```
 
 **Key architectural decisions:**
 - Client-side Firebase SDK for all Firestore/Auth/Storage operations
-- Next.js Route Handlers as server-side proxy for AI calls (protects API key)
-- No Firebase Cloud Functions — all logic runs client-side or in Route Handlers
-- Cookie-based session for route protection via Next.js proxy (middleware)
-- Zustand stores for client-side state management
+- Dedicated Express AI backend for matching logic and Gemini API calls
+- Next.js Route Handlers as proxy between frontend and AI backend
+- Cookie-based session for route protection via Next.js proxy
+- Tiered recommendation system: previous collaborations → AI suggested → interested mentors
+- Rule-based scoring with optional Gemini-powered explanations
 
 ---
 
@@ -88,11 +125,12 @@ To create a scalable AI-powered ecosystem operating system that continuously lea
 |---------|-------------|
 | Registration | Self-register with email/password, select startup role |
 | Profile Management | Set startup name, industry, stage, funding, goals, description |
-| AI Mentor Recommendations | Receive AI-generated mentor suggestions with compatibility scores and reasoning |
+| AI Mentor Recommendations | Tiered recommendations: past collaborations, AI-suggested, interested mentors |
 | Mentors Interested | View mentors who expressed interest in your startup |
-| Accept/Reject Mentors | Accept or reject mentors from both AI suggestions and interested sections |
-| Active Relationships | View and manage active mentorship relationships |
+| Accept/Reject Mentors | Accept or reject mentors from any section |
+| Active Relationships | View and manage active mentorship relationships with engagement scores |
 | Document Management | Upload meeting minutes, monthly reports with public/private visibility |
+| Project Progress | Track mentorship lifecycle phases (Initial → Processing → Feedback) |
 
 ### Mentor
 
@@ -101,7 +139,8 @@ To create a scalable AI-powered ecosystem operating system that continuously lea
 | Registration | Self-register with email/password, select mentor role |
 | Profile Management | Set name, expertise, industry specialization, availability, bio |
 | Startup Discovery | Browse, search, and filter startups by industry, stage, funding |
-| Express Interest | Click "Interested" on startups with confirmation dialog |
+| AI Startup Matching | Tiered startup recommendations based on expertise alignment |
+| Express Interest | Click "Interested" on startups with confirmation dialog explaining the flow |
 | Active Relationships | View active mentorship engagements with startups |
 
 ### Admin
@@ -109,49 +148,54 @@ To create a scalable AI-powered ecosystem operating system that continuously lea
 | Feature | Description |
 |---------|-------------|
 | Application Review | View pending applications with AI verification summaries |
-| AI Verification | Run Gemini-powered analysis on startup/mentor profiles |
-| Approve/Reject | Make final decisions on applications |
-| Ecosystem Analytics | Dashboard with growth metrics, charts, and engagement data |
+| AI Verification | Gemini-powered profile analysis with approve/reject/pending recommendations |
+| Approve/Reject | Make final decisions on applications with recorded timestamps |
+| Ecosystem Analytics | Dashboard with growth charts, match rates, engagement metrics |
 | User Management | View all users with role and status filtering |
+| Industry & Stage Breakdown | Visual distribution of ecosystem composition |
 
 ---
 
-## Features
+## Core Features
 
-### AI-Assisted Mentor-Startup Matching
-- Hybrid matching: AI recommendations + organic mentor interest
-- Gemini API generates compatibility scores (0-100%) with explainable reasoning
+### AI-Assisted Tiered Matching
+- **Previous Collaborations**: Mentors/startups with past successful relationships shown first
+- **AI Suggested**: Rule-based compatibility scoring with optional Gemini explanations
+- **Interested**: Organic interest expressions from the other party
 - Startup has final authority over mentor selection (human-in-the-loop)
 - System learns from accepts/rejects to improve future recommendations
 
 ### AI Verification System
-- Automated profile analysis for new applications
-- AI extracts and evaluates: completeness, industry classification, legitimacy
-- Generates recommendation: approve, reject, or pending review
+- Automated profile analysis using Gemini API
+- Evaluates: completeness, industry classification, legitimacy, experience depth
+- Generates structured recommendation: approve, reject, or pending review
 - Admin reviews AI report and makes final decision
+- Separate verification logic for startups vs mentors
 
-### Behavioral Learning
+### Behavioral Learning & Engagement
 - Tracks all interactions: interested clicks, accepts, rejects, profile views
 - Stores engagement history in Firestore for AI learning
-- Recommendations improve over time based on historical patterns
+- Engagement scores calculated from meeting frequency and document uploads
+- Project progress tracking through mentorship lifecycle phases
 
-### Document Management
-- Upload meeting minutes, monthly reports, general documents
+### Document Management & AI Analysis
+- Upload meeting minutes and monthly reports
+- AI-powered document analysis (meeting summaries, progress extraction)
 - Public/private visibility controls
 - Firebase Storage with 10MB file size limit
-- Accessible to relevant parties based on visibility settings
 
 ### Ecosystem Analytics (Admin)
 - Real-time metrics: total startups, mentors, active mentorships, pending applications
-- Growth charts, match rate visualization, engagement scores
+- Monthly registration charts (startups vs mentors)
+- Mentorship outcome progress bars (match acceptance, interest rate, engagement)
 - Industry and stage distribution breakdowns
 - Recent activity feed
 
-### Route Protection
+### Route Protection & Authentication
 - Cookie-based authentication via Next.js proxy
 - Role-based access control (admin, startup, mentor)
-- Unauthenticated users redirected to login
-- Role mismatch redirected to correct dashboard
+- Role badge in sidebar for clear role identification
+- Profile completion guideline banner for new users
 
 ---
 
@@ -165,10 +209,10 @@ To create a scalable AI-powered ecosystem operating system that continuously lea
 | `startups` | Startup profiles (name, industry, stage, goals, etc.) |
 | `mentors` | Mentor profiles (expertise, availability, success rate, etc.) |
 | `mentor_interests` | Records of mentors expressing interest in startups |
-| `relationships` | Active mentor-startup pairings |
+| `relationships` | Active mentor-startup pairings with engagement scores |
 | `documents` | File metadata with visibility controls |
 | `feedback` | Mentorship feedback and ratings |
-| `ai_recommendations` | AI-generated mentor suggestions with scores |
+| `ai_recommendations` | AI-generated mentor suggestions with scores and reasoning |
 | `engagement_history` | All user interactions for behavioral learning |
 
 ---
@@ -176,30 +220,51 @@ To create a scalable AI-powered ecosystem operating system that continuously lea
 ## Project Structure
 
 ```
-src/
-├── app/                    # Next.js App Router
-│   ├── (auth)/            # Login, Register pages
-│   ├── (dashboard)/       # Protected dashboard pages
-│   │   ├── admin/         # Admin pages
-│   │   ├── startup/       # Startup pages
-│   │   └── mentor/        # Mentor pages
-│   └── api/ai/            # Route Handlers (AI proxy)
-├── components/            # Reusable UI components
-│   ├── layout/            # AppShell, Sidebar, Header
-│   ├── cards/             # StartupCard, MentorCard
-│   ├── charts/            # MetricCard, chart components
-│   └── landing/           # Landing page components
-├── services/              # Business logic
-│   ├── firebase/          # Auth, Firestore, engagement services
-│   ├── ai/                # Recommendations, verification clients
-│   ├── matching/          # Interest, accept/reject services
-│   └── documents/         # File upload/management
-├── firebase/              # Firebase config and collection refs
-├── ai/                    # AI config and prompt templates
-├── hooks/                 # Custom React hooks
-├── stores/                # Zustand stores
-├── types/                 # TypeScript type definitions
-└── lib/                   # Utilities, validators, formatters
+├── src/                        # Next.js frontend application
+│   ├── app/                    # App Router pages
+│   │   ├── (auth)/            # Login, Register
+│   │   ├── (dashboard)/       # Protected dashboards (admin/startup/mentor)
+│   │   └── api/ai/            # Route Handlers (AI proxy to backend)
+│   ├── components/            # UI components
+│   │   ├── cards/             # StartupCard, MentorCard
+│   │   ├── charts/            # MetricCard, analytics
+│   │   ├── landing/           # FeatureCarousel, HeroMockup, HeroAnalytics
+│   │   └── layout/            # AppShell, Sidebar, Header
+│   ├── services/              # Business logic
+│   │   ├── ai/                # Recommendation & verification clients
+│   │   ├── firebase/          # Auth, Firestore, engagement services
+│   │   ├── matching/          # Interest, accept/reject services
+│   │   └── documents/         # File upload/management
+│   ├── firebase/              # Firebase config and typed collection refs
+│   ├── ai/                    # AI config and prompt templates
+│   ├── hooks/                 # Custom React hooks
+│   ├── stores/                # Zustand stores (auth, UI, matching)
+│   ├── types/                 # TypeScript type definitions
+│   ├── lib/                   # Utilities, validators, AI backend client
+│   ├── providers/             # Auth context provider
+│   └── proxy.ts               # Route protection (Next.js 16 middleware)
+│
+├── ai-backend/                 # Express.js AI service (Port 3001)
+│   ├── modules/               # AI logic modules
+│   │   ├── tiered-matching.js         # Tiered recommendation engine
+│   │   ├── matching.js                # Core matching algorithms
+│   │   ├── match-explanation.js       # AI reasoning generation
+│   │   ├── startup-verification.js    # Startup profile verification
+│   │   ├── mentor-verification.js     # Mentor profile verification
+│   │   ├── verification-reasoning.js  # Verification explanation logic
+│   │   ├── documents.js               # Document processing
+│   │   ├── meeting-minutes-analysis.js # Meeting minutes AI analysis
+│   │   └── monthly-report-analysis.js  # Monthly report AI analysis
+│   ├── services/              # Data stores and utilities
+│   ├── data/                  # Sample profiles for development
+│   └── index.js               # Express server entry point
+│
+├── scripts/                    # Utility scripts
+│   └── seed-mock-data.ts      # Seed Firestore with test data
+│
+├── firestore.rules            # Firestore security rules
+├── firestore.indexes.json     # Firestore composite indexes
+└── public/assets/             # Static assets and screenshots
 ```
 
 ---
@@ -214,23 +279,33 @@ src/
 ### Setup
 
 ```bash
-# Install dependencies
+# Install frontend dependencies
 npm install
+
+# Install AI backend dependencies
+cd ai-backend && npm install && cd ..
 
 # Copy environment variables
 cp .env.local.example .env.local
 # Fill in your Firebase and Gemini API credentials
 
+# Create AI backend env
+echo "GEMINI_API_KEY=your_key_here" > ai-backend/.env
+
 # Seed mock data (optional)
 npx tsx --env-file=.env.local scripts/seed-mock-data.ts
 
-# Run development server
+# Start AI backend (Terminal 1)
+cd ai-backend && npm start
+
+# Start Next.js dev server (Terminal 2)
 npm run dev
 ```
 
 ### Environment Variables
 
-```
+```env
+# .env.local (Next.js)
 NEXT_PUBLIC_FIREBASE_API_KEY=
 NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=
 NEXT_PUBLIC_FIREBASE_PROJECT_ID=
@@ -238,7 +313,25 @@ NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=
 NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=
 NEXT_PUBLIC_FIREBASE_APP_ID=
 GEMINI_API_KEY=
+USE_AI_BACKEND=true
+
+# ai-backend/.env
+GEMINI_API_KEY=
+PORT=3001
 ```
+
+### Mock Accounts (after seeding)
+
+**Password for all: `password123`**
+
+| Email | Role | Name |
+|-------|------|------|
+| startup1@nexora.test | Startup | FinPay Solutions |
+| startup2@nexora.test | Startup | EduVerse |
+| startup3@nexora.test | Startup | GreenLogix |
+| mentor1@nexora.test | Mentor | Sarah Chen |
+| mentor2@nexora.test | Mentor | David Park |
+| mentor3@nexora.test | Mentor | Lisa Wong |
 
 ---
 
