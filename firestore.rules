@@ -1,0 +1,183 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ============================================================
+    // Helper Functions
+    // ============================================================
+
+    // Check if the request is authenticated
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    // Get the user document for the authenticated user
+    function getUserDoc() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
+    }
+
+    // Check if the authenticated user has a specific role
+    function hasRole(role) {
+      return isAuthenticated() && getUserDoc().role == role;
+    }
+
+    // Check if the authenticated user is an admin
+    function isAdmin() {
+      return hasRole('admin');
+    }
+
+    // Check if the authenticated user is a startup
+    function isStartup() {
+      return hasRole('startup');
+    }
+
+    // Check if the authenticated user is a mentor
+    function isMentor() {
+      return hasRole('mentor');
+    }
+
+    // Check if the authenticated user owns this document (by userId field)
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    // Check if the authenticated user's entityId matches a given ID
+    function isEntity(entityId) {
+      return isAuthenticated() && getUserDoc().entityId == entityId;
+    }
+
+    // Check if a mentor is assigned to a startup via an active relationship
+    function isMentorAssignedToStartup(startupId) {
+      return isMentor()
+        && exists(/databases/$(database)/documents/relationships/$(getUserDoc().entityId + '_' + startupId));
+    }
+
+    // ============================================================
+    // Collection Rules
+    // ============================================================
+
+    // Users collection
+    match /users/{userId} {
+      allow read: if isAuthenticated() && (isOwner(userId) || isAdmin());
+      allow create: if isAuthenticated() && isOwner(userId);
+      allow update: if isAuthenticated() && (isOwner(userId) || isAdmin());
+      allow delete: if isAdmin();
+    }
+
+    // Startups collection
+    match /startups/{startupId} {
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated() && (isStartup() || isAdmin());
+      allow update: if isAuthenticated() && (isEntity(startupId) || isAdmin());
+      allow delete: if isAdmin();
+    }
+
+    // Mentors collection
+    match /mentors/{mentorId} {
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated() && (isMentor() || isAdmin());
+      allow update: if isAuthenticated() && (isEntity(mentorId) || isAdmin());
+      allow delete: if isAdmin();
+    }
+
+    // Mentor Interests collection
+    match /mentor_interests/{interestId} {
+      allow read: if isAuthenticated() && (
+        isAdmin()
+        || isEntity(resource.data.mentorId)
+        || isEntity(resource.data.startupId)
+      );
+      allow create: if isAuthenticated() && (
+        isMentor() && isEntity(request.resource.data.mentorId)
+      );
+      allow update: if isAuthenticated() && (
+        isAdmin()
+        || isEntity(resource.data.startupId)
+        || isEntity(resource.data.mentorId)
+      );
+      allow delete: if isAdmin();
+    }
+
+    // Relationships collection
+    match /relationships/{relationshipId} {
+      allow read: if isAuthenticated() && (
+        isAdmin()
+        || isEntity(resource.data.mentorId)
+        || isEntity(resource.data.startupId)
+      );
+      allow create: if isAuthenticated() && (
+        isAdmin()
+        || isEntity(request.resource.data.startupId)
+      );
+      allow update: if isAuthenticated() && (
+        isAdmin()
+        || isEntity(resource.data.startupId)
+        || isEntity(resource.data.mentorId)
+      );
+      allow delete: if isAdmin();
+    }
+
+    // Documents collection — with visibility enforcement
+    match /documents/{documentId} {
+      allow read: if isAuthenticated() && (
+        isAdmin()
+        || (
+          resource.data.visibility == 'public' && (
+            isEntity(resource.data.startupId)
+            || isMentorAssignedToStartup(resource.data.startupId)
+          )
+        )
+        || (
+          resource.data.visibility == 'private'
+          && isEntity(resource.data.startupId)
+        )
+      );
+      allow create: if isAuthenticated() && (
+        isStartup() && isEntity(request.resource.data.startupId)
+      );
+      allow update: if isAuthenticated() && (
+        isEntity(resource.data.startupId) || isAdmin()
+      );
+      allow delete: if isAuthenticated() && (
+        isEntity(resource.data.startupId) || isAdmin()
+      );
+    }
+
+    // Feedback collection
+    match /feedback/{feedbackId} {
+      allow read: if isAuthenticated() && (
+        isAdmin()
+        || isOwner(resource.data.fromUserId)
+      );
+      allow create: if isAuthenticated() && isOwner(request.resource.data.fromUserId);
+      allow update: if false;
+      allow delete: if isAdmin();
+    }
+
+    // AI Recommendations collection
+    match /ai_recommendations/{recommendationId} {
+      allow read: if isAuthenticated() && (
+        isAdmin()
+        || isEntity(resource.data.startupId)
+      );
+      allow create: if isAdmin();
+      allow update: if isAuthenticated() && (
+        isAdmin()
+        || isEntity(resource.data.startupId)
+      );
+      allow delete: if isAdmin();
+    }
+
+    // Engagement History collection
+    match /engagement_history/{historyId} {
+      allow read: if isAuthenticated() && (
+        isAdmin()
+        || isOwner(resource.data.userId)
+      );
+      allow create: if isAuthenticated() && isOwner(request.resource.data.userId);
+      allow update: if false;
+      allow delete: if isAdmin();
+    }
+  }
+}
