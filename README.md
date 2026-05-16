@@ -9,34 +9,24 @@ Nexora is an AI-powered ecosystem relationship intelligence platform that automa
 ## Demo & Screenshots
 
 ### Landing Page
-![Landing Page](public/assets/ss/Screenshot%202026-05-17%20at%201.45.53%E2%80%AFAM.png)
+![Landing Page](public/assets/ss/Landing%20Page.png)
+![Landing Page - Features](public/assets/ss/Landing%20page%202.png)
+![Landing Page - Roles](public/assets/ss/Landing%20page%203.png)
 
-### Registration
-![Registration](public/assets/ss/Screenshot%202026-05-17%20at%201.46.00%E2%80%AFAM.png)
+### Authentication
+![Registration](public/assets/ss/registration.png)
 
-### Login
-![Login](public/assets/ss/Screenshot%202026-05-17%20at%201.46.10%E2%80%AFAM.png)
+### Startup Dashboard
+![Startup — AI Mentor Matching](public/assets/ss/startup%20ai%20mentor%20matching.png)
 
-### Startup Dashboard — AI Mentor Matching
-![Startup Dashboard](public/assets/ss/Screenshot%202026-05-17%20at%201.47.29%E2%80%AFAM.png)
+### Mentor Dashboard
+![Mentor — AI Recommendations](public/assets/ss/mentor%20ai%20recommendations.png)
 
-### Mentor Dashboard — Startup Discovery
-![Mentor Dashboard](public/assets/ss/Screenshot%202026-05-17%20at%201.47.57%E2%80%AFAM.png)
-
-### Mentor — Express Interest Confirmation
-![Interest Confirmation](public/assets/ss/Screenshot%202026-05-17%20at%201.48.02%E2%80%AFAM.png)
-
-### Startup — Mentors Interested Section
-![Mentors Interested](public/assets/ss/Screenshot%202026-05-17%20at%201.48.09%E2%80%AFAM.png)
-
-### Admin — AI Verification
-![AI Verification](public/assets/ss/Screenshot%202026-05-17%20at%201.49.16%E2%80%AFAM.png)
-
-### Admin — Analytics Dashboard
-![Analytics](public/assets/ss/Screenshot%202026-05-17%20at%202.24.39%E2%80%AFAM.png)
-
-### Profile Management
-![Profile](public/assets/ss/Screenshot%202026-05-17%20at%202.30.33%E2%80%AFAM.png)
+### Admin Dashboard
+![Admin — Dashboard](public/assets/ss/admin%20dashboard.png)
+![Admin — Analytics](public/assets/ss/admin%20analystics.png)
+![Admin — AI Verification](public/assets/ss/admin%20ai%20verifications.png)
+![Admin — User Management](public/assets/ss/admin%20user%20list.png)
 
 ---
 
