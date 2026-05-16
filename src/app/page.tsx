@@ -6,6 +6,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { FeatureCarousel } from "@/components/landing/FeatureCarousel";
 import { HeroMockup } from "@/components/landing/HeroMockup";
+import { HeroAnalytics } from "@/components/landing/HeroAnalytics";
 
 export default function Home() {
   return (
@@ -39,9 +40,9 @@ export default function Home() {
           <img
             src="/assets/blue-futuristic-waves-background-with-computer-code-technology_53876-119584.avif"
             alt=""
-            className="w-full h-full object-cover opacity-40"
+            className="w-full h-full object-cover opacity-50"
           />
-          <div className="absolute inset-0 bg-gradient-to-b from-background/70 via-background/80 to-background" />
+          <div className="absolute inset-0 bg-gradient-to-b from-background/60 via-background/70 to-background" />
         </div>
 
         {/* Animated gradient orbs */}
@@ -56,9 +57,9 @@ export default function Home() {
           </div>
 
           <h1 className="max-w-4xl text-4xl font-bold tracking-tight text-foreground sm:text-5xl lg:text-6xl">
-            The operating system for{" "}
+            Turn ecosystem chaos into{" "}
             <span className="bg-gradient-to-r from-primary to-blue-400 bg-clip-text text-transparent">
-              innovation ecosystems
+              intelligent connections
             </span>
           </h1>
 
@@ -83,15 +84,27 @@ export default function Home() {
 
           {/* Dashboard Preview Mockup */}
           <HeroMockup />
+
+          {/* AI Verification Animation */}
+          <div className="mt-10 w-full max-w-3xl">
+            <HeroAnalytics />
+          </div>
         </div>
       </section>
 
       {/* Features Carousel */}
       <section className="relative py-20 overflow-hidden">
-        {/* Gradient that transitions smoothly from the hero */}
-        <div className="absolute inset-0 bg-gradient-to-b from-background via-slate-900/95 to-slate-900 z-0" />
-        <div className="absolute top-0 right-0 w-96 h-96 bg-primary/10 rounded-full blur-3xl" />
-        <div className="absolute bottom-0 left-0 w-80 h-80 bg-blue-500/10 rounded-full blur-3xl" />
+        {/* Background image + dark overlay */}
+        <div className="absolute inset-0 z-0">
+          <img
+            src="/assets/blue-futuristic-waves-background-with-computer-code-technology_53876-119584.avif"
+            alt=""
+            className="w-full h-full object-cover opacity-30"
+          />
+          <div className="absolute inset-0 bg-slate-900/85" />
+        </div>
+        <div className="absolute top-0 right-0 w-96 h-96 bg-blue-600/8 rounded-full blur-3xl" />
+        <div className="absolute bottom-0 left-0 w-80 h-80 bg-indigo-500/8 rounded-full blur-3xl" />
 
         <div className="relative z-10 mx-auto max-w-7xl px-6">
           <div className="text-center mb-12">
@@ -116,7 +129,7 @@ export default function Home() {
       {/* Role Section */}
       <section className="py-20 relative overflow-hidden">
         {/* Gradient transition from dark features to light */}
-        <div className="absolute inset-0 bg-gradient-to-b from-slate-900 via-slate-800/50 to-background z-0" />
+        <div className="absolute inset-0 bg-gradient-to-b from-slate-900 to-background z-0" />
         <div className="relative z-10 mx-auto max-w-7xl px-6">
           <div className="text-center mb-16">
             <span className="inline-block text-sm font-semibold text-blue-300 uppercase tracking-wider mb-2">

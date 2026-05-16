@@ -37,26 +37,26 @@ const features: Feature[] = [
       "Improves with every interaction",
     ],
     illustration: (
-      <div className="relative w-full h-48 rounded-lg bg-gradient-to-br from-primary/5 to-primary/10 border flex items-center justify-center overflow-hidden">
-        <div className="absolute inset-0 opacity-10">
+      <div className="relative w-full h-48 rounded-lg bg-white/95 border border-white/20 shadow-lg flex items-center justify-center overflow-hidden">
+        <div className="absolute inset-0 opacity-20">
           <div className="absolute top-4 left-8 w-20 h-20 rounded-full border-2 border-primary/30" />
           <div className="absolute bottom-6 right-12 w-16 h-16 rounded-full border-2 border-primary/20" />
           <div className="absolute top-12 right-8 w-12 h-12 rounded-full border-2 border-primary/40" />
         </div>
         <div className="flex items-center gap-4">
           <div className="flex flex-col items-center gap-1">
-            <div className="w-12 h-12 rounded-full bg-primary/20 flex items-center justify-center">
+            <div className="w-12 h-12 rounded-full bg-primary/15 flex items-center justify-center">
               <Users className="h-6 w-6 text-primary" />
             </div>
             <span className="text-xs text-muted-foreground">Startup</span>
           </div>
           <div className="flex flex-col items-center">
             <Brain className="h-8 w-8 text-primary animate-pulse" />
-            <div className="w-16 h-0.5 bg-primary/30 mt-1" />
+            <div className="w-16 h-0.5 bg-blue-400/30 mt-1" />
             <span className="text-xs text-primary font-medium mt-1">92% Match</span>
           </div>
           <div className="flex flex-col items-center gap-1">
-            <div className="w-12 h-12 rounded-full bg-primary/20 flex items-center justify-center">
+            <div className="w-12 h-12 rounded-full bg-primary/15 flex items-center justify-center">
               <Heart className="h-6 w-6 text-primary" />
             </div>
             <span className="text-xs text-muted-foreground">Mentor</span>
@@ -77,12 +77,12 @@ const features: Feature[] = [
       "Startup has final authority",
     ],
     illustration: (
-      <div className="relative w-full h-48 rounded-lg bg-gradient-to-br from-blue-50 to-indigo-50 border flex items-center justify-center p-4">
+      <div className="relative w-full h-48 rounded-lg bg-white/95 border border-white/20 shadow-lg flex items-center justify-center p-4">
         <div className="grid grid-cols-2 gap-2 w-full max-w-xs">
           {["FinTech", "EdTech", "SaaS", "HealthTech"].map((industry) => (
             <div
               key={industry}
-              className="rounded-md border bg-background px-3 py-2 text-center"
+              className="rounded-md border border-border bg-muted/50 px-3 py-2 text-center"
             >
               <p className="text-xs font-medium text-foreground">{industry}</p>
               <p className="text-[10px] text-muted-foreground mt-0.5">Seed Stage</p>
@@ -104,20 +104,20 @@ const features: Feature[] = [
       "Admin retains final decision",
     ],
     illustration: (
-      <div className="relative w-full h-48 rounded-lg bg-gradient-to-br from-green-50 to-emerald-50 border flex items-center justify-center p-4">
+      <div className="relative w-full h-48 rounded-lg bg-white/95 border border-white/20 shadow-lg flex items-center justify-center p-4">
         <div className="w-full max-w-xs space-y-2">
-          <div className="rounded-md border bg-background p-3">
+          <div className="rounded-md border border-border bg-muted/50 p-3">
             <div className="flex items-center justify-between">
-              <span className="text-xs font-medium">AI Recommendation</span>
-              <span className="text-xs bg-green-100 text-green-800 px-2 py-0.5 rounded-full">Approve</span>
+              <span className="text-xs font-medium text-foreground">AI Recommendation</span>
+              <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full">Approve</span>
             </div>
             <p className="text-[10px] text-muted-foreground mt-1">
               Complete profile with verified industry data...
             </p>
           </div>
           <div className="flex gap-2">
-            <div className="flex-1 rounded-md bg-primary px-3 py-1.5 text-center text-xs text-white">Approve</div>
-            <div className="flex-1 rounded-md border px-3 py-1.5 text-center text-xs">Reject</div>
+            <div className="flex-1 rounded-md bg-blue-500 px-3 py-1.5 text-center text-xs text-white">Approve</div>
+            <div className="flex-1 rounded-md border border-border px-3 py-1.5 text-center text-xs text-muted-foreground">Reject</div>
           </div>
         </div>
       </div>
@@ -135,18 +135,18 @@ const features: Feature[] = [
       "Growth and health indicators",
     ],
     illustration: (
-      <div className="relative w-full h-48 rounded-lg bg-gradient-to-br from-purple-50 to-violet-50 border flex items-center justify-center p-4">
+      <div className="relative w-full h-48 rounded-lg bg-white/95 border border-white/20 shadow-lg flex items-center justify-center p-4">
         <div className="w-full max-w-xs">
           <div className="grid grid-cols-3 gap-2">
-            <div className="rounded-md border bg-background p-2 text-center">
+            <div className="rounded-md border border-border bg-muted/50 p-2 text-center">
               <p className="text-lg font-bold text-primary">24</p>
               <p className="text-[10px] text-muted-foreground">Startups</p>
             </div>
-            <div className="rounded-md border bg-background p-2 text-center">
+            <div className="rounded-md border border-border bg-muted/50 p-2 text-center">
               <p className="text-lg font-bold text-primary">18</p>
               <p className="text-[10px] text-muted-foreground">Mentors</p>
             </div>
-            <div className="rounded-md border bg-background p-2 text-center">
+            <div className="rounded-md border border-border bg-muted/50 p-2 text-center">
               <p className="text-lg font-bold text-primary">12</p>
               <p className="text-[10px] text-muted-foreground">Active</p>
             </div>
@@ -155,7 +155,7 @@ const features: Feature[] = [
             {[40, 55, 35, 70, 60, 80, 75, 90].map((h, i) => (
               <div
                 key={i}
-                className="flex-1 rounded-t bg-primary/20"
+                className="flex-1 rounded-t bg-primary/30"
                 style={{ height: `${h}%` }}
               />
             ))}
@@ -176,11 +176,11 @@ const features: Feature[] = [
       "Secure Firebase Storage",
     ],
     illustration: (
-      <div className="relative w-full h-48 rounded-lg bg-gradient-to-br from-orange-50 to-amber-50 border flex items-center justify-center p-4">
+      <div className="relative w-full h-48 rounded-lg bg-white/95 border border-white/20 shadow-lg flex items-center justify-center p-4">
         <div className="w-full max-w-xs space-y-2">
           {["Meeting Minutes - Q1 Review", "Monthly Report - March", "Pitch Deck v2"].map((name) => (
-            <div key={name} className="flex items-center gap-2 rounded-md border bg-background px-3 py-2">
-              <FileText className="h-4 w-4 text-muted-foreground shrink-0" />
+            <div key={name} className="flex items-center gap-2 rounded-md border border-border bg-muted/50 px-3 py-2">
+              <FileText className="h-4 w-4 text-primary shrink-0" />
               <span className="text-xs text-foreground truncate">{name}</span>
               <span className="ml-auto text-[10px] text-muted-foreground shrink-0">Public</span>
             </div>
@@ -201,30 +201,30 @@ const features: Feature[] = [
       "Personalized recommendations",
     ],
     illustration: (
-      <div className="relative w-full h-48 rounded-lg bg-gradient-to-br from-cyan-50 to-sky-50 border flex items-center justify-center p-4">
+      <div className="relative w-full h-48 rounded-lg bg-white/95 border border-white/20 shadow-lg flex items-center justify-center p-4">
         <div className="flex flex-col items-center gap-3">
           <div className="flex items-center gap-6">
             <div className="text-center">
               <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center mx-auto">
-                <span className="text-xs">✓</span>
+                <span className="text-xs text-green-700">✓</span>
               </div>
               <span className="text-[10px] text-muted-foreground mt-1 block">Accept</span>
             </div>
             <div className="text-center">
               <div className="w-8 h-8 rounded-full bg-red-100 flex items-center justify-center mx-auto">
-                <span className="text-xs">✗</span>
+                <span className="text-xs text-red-700">✗</span>
               </div>
               <span className="text-[10px] text-muted-foreground mt-1 block">Reject</span>
             </div>
             <div className="text-center">
               <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center mx-auto">
-                <span className="text-xs">👁</span>
+                <span className="text-xs text-primary">👁</span>
               </div>
               <span className="text-[10px] text-muted-foreground mt-1 block">View</span>
             </div>
           </div>
           <Zap className="h-5 w-5 text-primary" />
-          <div className="rounded-md border bg-background px-4 py-2">
+          <div className="rounded-md border border-border bg-muted/50 px-4 py-2">
             <span className="text-xs font-medium text-primary">Better Recommendations</span>
           </div>
         </div>
@@ -266,10 +266,10 @@ export function FeatureCarousel() {
         {/* Left: Text */}
         <div className="space-y-4">
           <div className="flex items-center gap-2">
-            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-gradient-to-br from-blue-400/30 to-blue-500/10 border border-blue-400/20">
-              <Icon className="h-5 w-5 text-blue-300" />
+            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-gradient-to-br from-blue-400/30 to-blue-500/10 border border-primary/20">
+              <Icon className="h-5 w-5 text-primary" />
             </div>
-            <span className="text-sm font-semibold text-blue-300">{feature.subtitle}</span>
+            <span className="text-sm font-semibold text-primary">{feature.subtitle}</span>
           </div>
 
           <h3 className="text-2xl font-bold text-white lg:text-3xl">

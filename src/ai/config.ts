@@ -4,7 +4,7 @@
  */
 
 /** Primary model for recommendations and verification */
-export const GEMINI_MODEL = "gemini-2.0-flash";
+export const GEMINI_MODEL = "gemini-2.5-flash";
 
 /** Fallback model when Gemini is unavailable */
 export const GEMMA_MODEL = "gemma-3-27b-it";

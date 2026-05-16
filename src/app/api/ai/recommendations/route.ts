@@ -1,20 +1,19 @@
 import { NextResponse } from "next/server";
 import { GoogleGenAI } from "@google/genai";
-import { addDoc, Timestamp } from "firebase/firestore";
 
-import { GEMINI_MODEL, AI_TIMEOUT_MS } from "@/ai/config";
+import { GEMINI_MODEL } from "@/ai/config";
 import {
   buildRecommendationSystemPrompt,
   buildRecommendationUserPrompt,
 } from "@/ai/prompts";
-import { getStartupById, getApprovedMentors } from "@/services/firebase/firestore.service";
-import { aiRecommendationsCollection, engagementHistoryCollection } from "@/firebase/collections";
-import type { AIRecommendation } from "@/types/ai.types";
+import type { StartupDocument } from "@/types/startup.types";
+import type { MentorDocument } from "@/types/mentor.types";
 import type { EngagementHistoryDocument } from "@/types/matching.types";
 
 interface RecommendationRequest {
-  startupId: string;
-  userId: string;
+  startup: StartupDocument;
+  mentors: MentorDocument[];
+  history: EngagementHistoryDocument[];
 }
 
 interface AIRecommendationResponse {
@@ -28,62 +27,37 @@ interface AIRecommendationResponse {
 export async function POST(request: Request) {
   try {
     const body = (await request.json()) as RecommendationRequest;
-    const { startupId, userId } = body;
+    const { startup, mentors, history } = body;
 
-    if (!startupId || !userId) {
+    if (!startup || !mentors) {
       return NextResponse.json(
-        { error: "startupId and userId are required" },
+        { error: "startup and mentors data are required" },
         { status: 400 }
       );
     }
-
-    // Fetch startup profile
-    const startupResult = await getStartupById(startupId);
-    if (startupResult.error || !startupResult.data) {
-      return NextResponse.json(
-        { error: "Startup not found" },
-        { status: 404 }
-      );
-    }
-
-    // Fetch available mentors
-    const mentorsResult = await getApprovedMentors(50);
-    if (mentorsResult.error || !mentorsResult.data) {
-      return NextResponse.json(
-        { error: "Failed to fetch mentors" },
-        { status: 500 }
-      );
-    }
-
-    const startup = startupResult.data;
-    const mentors = mentorsResult.data.mentors;
 
     if (mentors.length === 0) {
       return NextResponse.json({ recommendations: [] });
     }
 
-    // Fetch engagement history for this startup's user
-    // For now, pass empty history — will be enhanced when engagement service is wired
-    const history: EngagementHistoryDocument[] = [];
-
     // Build prompts
     const systemPrompt = buildRecommendationSystemPrompt();
-    const userPrompt = buildRecommendationUserPrompt(startup, mentors, history);
+    const userPrompt = buildRecommendationUserPrompt(
+      startup as StartupDocument,
+      mentors as MentorDocument[],
+      history ?? []
+    );
 
     let aiResponse: AIRecommendationResponse;
     let modelUsed: "gemini" | "gemma" = "gemini";
 
     try {
-      // Call Gemini API
       const apiKey = process.env.GEMINI_API_KEY;
       if (!apiKey) {
         throw new Error("GEMINI_API_KEY not configured");
       }
 
       const ai = new GoogleGenAI({ apiKey });
-
-      const controller = new AbortController();
-      const timeout = setTimeout(() => controller.abort(), AI_TIMEOUT_MS);
 
       const response = await ai.models.generateContent({
         model: GEMINI_MODEL,
@@ -94,36 +68,23 @@ export async function POST(request: Request) {
         },
       });
 
-      clearTimeout(timeout);
-
       const text = response.text ?? "";
       aiResponse = JSON.parse(text) as AIRecommendationResponse;
-    } catch {
+    } catch (aiError) {
+      console.error("Gemini API error:", aiError);
       // Fallback: generate simple rule-based recommendations
       modelUsed = "gemma";
       aiResponse = generateFallbackRecommendations(startup, mentors);
     }
 
-    // Store recommendations in Firestore
-    const now = Timestamp.now();
-    const storedRecommendations: AIRecommendation[] = [];
+    // Return recommendations with model info (client will store in Firestore)
+    const recommendations = aiResponse.recommendations.map((rec) => ({
+      ...rec,
+      compatibilityScore: Math.max(0, Math.min(100, rec.compatibilityScore)),
+      modelUsed,
+    }));
 
-    for (const rec of aiResponse.recommendations) {
-      const recData: Omit<AIRecommendation, "id"> = {
-        startupId,
-        mentorId: rec.mentorId,
-        compatibilityScore: Math.max(0, Math.min(100, rec.compatibilityScore)),
-        reasoning: rec.reasoning,
-        modelUsed,
-        status: "pending",
-        createdAt: now,
-      };
-
-      const docRef = await addDoc(aiRecommendationsCollection, recData);
-      storedRecommendations.push({ ...recData, id: docRef.id } as AIRecommendation);
-    }
-
-    return NextResponse.json({ recommendations: storedRecommendations });
+    return NextResponse.json({ recommendations, modelUsed });
   } catch (error: unknown) {
     console.error("AI recommendations error:", error);
     return NextResponse.json(
@@ -135,7 +96,6 @@ export async function POST(request: Request) {
 
 /**
  * Fallback recommendation generator when AI services are unavailable.
- * Uses simple industry and expertise matching.
  */
 function generateFallbackRecommendations(
   startup: { industry: string; stage: string; goals: string[] },
@@ -148,25 +108,19 @@ function generateFallbackRecommendations(
   }>
 ): AIRecommendationResponse {
   const scored = mentors.map((mentor) => {
-    let score = 50; // Base score
+    let score = 50;
 
-    // Industry match
     if (mentor.industrySpecialization.includes(startup.industry)) {
       score += 25;
     }
 
-    // Expertise overlap with goals
     const goalOverlap = startup.goals.filter((goal) =>
       mentor.expertise.some((exp) =>
         exp.toLowerCase().includes(goal.toLowerCase())
       )
     ).length;
     score += goalOverlap * 5;
-
-    // Success rate bonus
     score += Math.floor(mentor.successRate / 10);
-
-    // Experience bonus
     if (mentor.mentorshipCount > 5) score += 5;
 
     return {
@@ -180,8 +134,6 @@ function generateFallbackRecommendations(
     };
   });
 
-  // Sort by score descending and take top 5
   scored.sort((a, b) => b.compatibilityScore - a.compatibilityScore);
-
   return { recommendations: scored.slice(0, 5) };
 }
