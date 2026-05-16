@@ -7,14 +7,6 @@ import { AuthProvider } from "@/providers/auth-provider";
 import { useAuth } from "@/hooks/useAuth";
 import { AppShell } from "@/components/layout/AppShell";
 import { startupsCollection, mentorsCollection } from "@/firebase/collections";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-} from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 
@@ -71,30 +63,40 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
   const profilePath = user?.role === "startup" ? "/startup/profile" : "/mentor/profile";
 
   return (
-    <>
-      <AppShell>{children}</AppShell>
-
-      <Dialog open={showProfilePrompt} onOpenChange={setShowProfilePrompt}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Complete Your Profile</DialogTitle>
-            <DialogDescription>
-              Please fill in your profile information so other users can find and connect with you. This is required to use the platform.
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setShowProfilePrompt(false)}>
-              Later
-            </Button>
-            <Link href={profilePath}>
-              <Button onClick={() => setShowProfilePrompt(false)}>
-                Go to Profile
-              </Button>
-            </Link>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-    </>
+    <AppShell>
+      {/* Profile completion guideline banner */}
+      {showProfilePrompt && (
+        <div className="mb-6 rounded-lg border border-primary/20 bg-primary/5 p-4">
+          <div className="flex items-start gap-4">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/10">
+              <span className="text-lg">👋</span>
+            </div>
+            <div className="flex-1">
+              <h3 className="text-sm font-semibold text-foreground">Welcome to Nexora! Let&apos;s get you set up.</h3>
+              <p className="mt-1 text-sm text-muted-foreground">
+                Complete your profile so mentors and startups can find and connect with you. Here&apos;s what to do:
+              </p>
+              <ol className="mt-3 space-y-1.5 text-sm text-muted-foreground list-decimal list-inside">
+                <li>Fill in your {user?.role === "startup" ? "startup" : "mentor"} profile details</li>
+                <li>{user?.role === "startup" ? "Add your industry, stage, and goals" : "Add your expertise and availability"}</li>
+                <li>{user?.role === "startup" ? "Wait for AI mentor recommendations" : "Browse startups and express interest"}</li>
+              </ol>
+              <div className="mt-4 flex items-center gap-3">
+                <Link href={profilePath}>
+                  <Button size="sm" className="cursor-pointer">
+                    Complete Profile
+                  </Button>
+                </Link>
+                <Button size="sm" variant="ghost" onClick={() => setShowProfilePrompt(false)} className="cursor-pointer text-muted-foreground">
+                  Dismiss
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+      {children}
+    </AppShell>
   );
 }
 

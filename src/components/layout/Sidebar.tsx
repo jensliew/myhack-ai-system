@@ -69,12 +69,19 @@ export function Sidebar({ role, collapsed = false, onLogout }: SidebarProps) {
 
   return (
     <div className="flex h-full flex-col bg-sidebar">
-      {/* Logo */}
-      <div className={cn("flex h-16 items-center border-b border-sidebar-border px-4", collapsed && "justify-center px-2")}>
+      {/* Logo + Role */}
+      <div className={cn("flex flex-col border-b border-sidebar-border px-4 py-3", collapsed && "items-center px-2")}>
         {collapsed ? (
           <span className="text-lg font-bold text-sidebar-primary">N</span>
         ) : (
-          <span className="text-lg font-bold text-sidebar-primary">Nexora</span>
+          <>
+            <span className="text-lg font-bold text-sidebar-primary">Nexora</span>
+            {role && (
+              <span className="mt-1 inline-flex items-center rounded-md bg-primary/10 px-2 py-0.5 text-xs font-semibold text-primary capitalize w-fit">
+                {role} Portal
+              </span>
+            )}
+          </>
         )}
       </div>
 

@@ -127,21 +127,19 @@ export default function Home() {
       </section>
 
       {/* Role Section */}
-      <section className="py-20 relative overflow-hidden">
-        {/* Gradient transition from dark features to light */}
-        <div className="absolute inset-0 bg-gradient-to-b from-slate-900 to-background z-0" />
+      <section className="py-20 relative overflow-hidden bg-background">
         <div className="relative z-10 mx-auto max-w-7xl px-6">
           <div className="text-center mb-16">
-            <span className="inline-block text-sm font-semibold text-blue-300 uppercase tracking-wider mb-2">
+            <span className="inline-block text-sm font-semibold text-primary uppercase tracking-wider mb-2">
               For Every Role
             </span>
-            <h2 className="text-3xl font-bold tracking-tight text-white sm:text-4xl">
+            <h2 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
               Tailored experiences that{" "}
-              <span className="bg-gradient-to-r from-blue-300 to-cyan-300 bg-clip-text text-transparent">
+              <span className="bg-gradient-to-r from-primary to-blue-400 bg-clip-text text-transparent">
                 drive results
               </span>
             </h2>
-            <p className="mt-4 text-blue-200/70 text-lg">
+            <p className="mt-4 text-muted-foreground text-lg">
               Whether you&apos;re a startup, mentor, or administrator — Nexora adapts to your workflow.
             </p>
           </div>
