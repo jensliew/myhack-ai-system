@@ -1,13 +1,14 @@
 /**
  * AI model configuration for the Nexora platform.
- * Uses Gemini API as primary with Gemma as offline fallback.
+ * Uses Gemini 3.1 Flash Lite as primary (150 RPM, 250K TPM quota).
+ * Falls back to Gemma when Gemini is unavailable.
  */
 
 /** Primary model for recommendations and verification */
-export const GEMINI_MODEL = "gemma-4-31b-it";
+export const GEMINI_MODEL = "gemini-3.1-flash-lite";
 
 /** Fallback model when Gemini is unavailable */
-export const GEMMA_MODEL = "gemma-3-27b-it";
+export const GEMMA_MODEL = "gemma-4-31b-it";
 
 /** Timeout for AI API calls in milliseconds */
 export const AI_TIMEOUT_MS = 10_000;
