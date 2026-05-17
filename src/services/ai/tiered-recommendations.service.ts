@@ -91,7 +91,7 @@ export async function getTieredRecommendations(
       data: null,
       error: {
         code: "ai/network-error",
-        message: "Network error. Is the AI backend running on port 3001?",
+        message: "Network error. Is the AI backend running on port 3002? Run: cd ai-backend && npm start",
         retryable: true,
       },
     };
