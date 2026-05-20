@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { LogOut } from "lucide-react";
 import type { UserDocument } from "@/types/user.types";
+import { NotificationBell } from "@/components/layout/NotificationBell";
 
 interface HeaderProps {
   user: UserDocument | null;
@@ -45,8 +46,9 @@ export function Header({ user, onMenuClick, onLogout }: HeaderProps) {
       {/* Spacer for desktop (no hamburger) */}
       <div className="hidden lg:block" />
 
-      {/* Right: user info */}
-      <div className="flex items-center gap-3">
+      {/* Right: notifications + user info */}
+      <div className="flex items-center gap-2">
+        {user && user.role !== "admin" && <NotificationBell />}
         {user && (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>

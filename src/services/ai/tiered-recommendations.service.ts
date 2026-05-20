@@ -53,18 +53,23 @@ export async function getTieredRecommendations(
     const interestedMentorIds =
       interestedResult.data?.map((i) => i.mentorId) ?? [];
 
-    // Get active relationships to exclude from previous collaborations
+    // Get active relationships to exclude from ALL tiers
     const activeRelResult = await getActiveRelationships(startupId);
     const activeMentorIds =
       activeRelResult.data?.map((r) => r.mentorId) ?? [];
 
-    const response = await fetch("/api/ai/recommendations/tiered", {
+    // Filter out active mentors from interested list too
+    const filteredInterestedMentorIds = interestedMentorIds.filter(
+      (id) => !activeMentorIds.includes(id)
+    );
+
+    const response = await fetch("/api/ai/matching/mentors", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         startup: startupResult.data,
         mentors: mentorsResult.data.mentors,
-        interestedMentorIds,
+        interestedMentorIds: filteredInterestedMentorIds,
         activeMentorIds,
         explainTop: 3,
       }),

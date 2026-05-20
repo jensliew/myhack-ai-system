@@ -11,6 +11,9 @@ import {
   Briefcase,
   Heart,
   LogOut,
+  MessageSquare,
+  History,
+  Link2,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -26,14 +29,16 @@ export interface NavItem {
 const adminNavItems: NavItem[] = [
   { label: "Dashboard", href: "/admin", icon: LayoutDashboard },
   { label: "Applications", href: "/admin/applications", icon: FileText },
+  { label: "Relationships", href: "/admin/relationships", icon: Link2 },
   { label: "Analytics", href: "/admin/analytics", icon: BarChart3 },
   { label: "Users", href: "/admin/users", icon: Users },
 ];
 
 const startupNavItems: NavItem[] = [
   { label: "Dashboard", href: "/startup", icon: LayoutDashboard },
+  { label: "My Mentors", href: "/startup/mentors", icon: Users },
   { label: "Documents", href: "/startup/documents", icon: FileText },
-  { label: "Mentors", href: "/startup/mentors", icon: Users },
+  { label: "History", href: "/startup/history", icon: History },
   { label: "Profile", href: "/startup/profile", icon: UserCircle },
 ];
 
@@ -41,6 +46,8 @@ const mentorNavItems: NavItem[] = [
   { label: "Dashboard", href: "/mentor", icon: LayoutDashboard },
   { label: "Startups", href: "/mentor/startups", icon: Briefcase },
   { label: "Relationships", href: "/mentor/relationships", icon: Heart },
+  { label: "Interested", href: "/mentor/interested", icon: MessageSquare },
+  { label: "History", href: "/mentor/history", icon: History },
   { label: "Profile", href: "/mentor/profile", icon: UserCircle },
 ];
 

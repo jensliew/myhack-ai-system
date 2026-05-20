@@ -1,6 +1,7 @@
 import { normalizeList } from "./matching.js";
 import { getAllCollaborations } from "./collaboration-store.js";
 import { isMentorAvailable } from "./matching.js";
+import { callGemini } from "../services/gemini.js";
 
 function industryOverlap(startupIndustry, collabIndustry) {
   const a = normalizeList(startupIndustry);
@@ -56,22 +57,64 @@ export function rankMentorsByPastCollaboration(startup, mentors) {
     .sort((a, b) => b.relevance_score - a.relevance_score);
 }
 
-export function buildCollaborationReasoning(entry, startup) {
+/**
+ * Generate AI-powered collaboration reasoning using Gemini API.
+ * Falls back to rule-based if API call fails.
+ */
+export async function buildCollaborationReasoning(entry, startup) {
   const c = entry.collaboration;
-  const parts = [];
-  if (c.startup_name) {
-    parts.push(`Previously mentored ${c.startup_name}`);
-  } else {
-    parts.push("Has prior mentorship collaboration on the platform");
+  const mentorName = entry.mentor?.name || entry.mentor?.full_name || "This mentor";
+  const startupName = startup?.name || startup?.startup_name || "your startup";
+  const mentorExpertise = Array.isArray(entry.mentor?.expertise)
+    ? entry.mentor.expertise.join(", ")
+    : entry.mentor?.expertise || "";
+
+  const prompt = `You are an AI matching engine for a startup accelerator. Analyze this previous collaboration and explain why this mentor is recommended for the new startup.
+
+Mentor: ${mentorName}
+Mentor expertise: ${mentorExpertise}
+Previously mentored: ${c.startup_name || "a startup"}
+Past industry: ${c.industry || "Not specified"}
+Past engagement score: ${c.avg_engagement ?? "N/A"}%
+Past success rate: ${c.avg_success ?? "N/A"}%
+Collaboration score: ${c.collaboration_score ?? "N/A"}
+Industry match with new startup: ${entry.industry_match ? "Yes" : "No"}
+
+New Startup: ${startupName}
+New Startup industry: ${startup?.industry || "Not specified"}
+New Startup goals: ${Array.isArray(startup?.goals) ? startup.goals.join(", ") : startup?.goals || "Not specified"}
+Relevance score: ${entry.relevance_score}%
+
+Return ONLY a valid JSON object (no markdown, no extra text):
+{
+  "ai_match_reasoning": "<2-3 sentences explaining why ${mentorName} is recommended based on their proven track record. Reference their actual past performance metrics and how it relates to ${startupName}'s specific needs. Be specific and personalised.>",
+  "strengths": ["<specific strength from collaboration data>", "<specific strength 2>", "<specific strength 3>"],
+  "suggestion": "<one actionable suggestion for how ${startupName} can best leverage ${mentorName}'s proven experience>"
+}`;
+
+  try {
+    const raw = await callGemini(prompt);
+    const jsonMatch = raw.match(/\{[\s\S]*\}/);
+    if (!jsonMatch) throw new Error("No JSON in response");
+    const result = JSON.parse(jsonMatch[0]);
+    return {
+      ai_match_reasoning: result.ai_match_reasoning ?? "",
+      strengths: result.strengths ?? [],
+      suggestion: result.suggestion ?? null,
+    };
+  } catch (err) {
+    console.error("Gemini collaboration reasoning failed, using fallback:", err.message);
+    // Rule-based fallback
+    const parts = [];
+    if (c.startup_name) parts.push(`Previously mentored ${c.startup_name}`);
+    else parts.push("Has prior mentorship collaboration on the platform");
+    if (entry.industry_match && startup?.industry) parts.push(`relevant ${startup.industry} experience`);
+    if (c.avg_success != null) parts.push(`${c.avg_success}% average project success`);
+    if (c.avg_engagement != null) parts.push(`${c.avg_engagement}% engagement from meeting minutes`);
+    return {
+      ai_match_reasoning: `${parts.join(". ")}. Recommended because of proven track record before AI profile matching.`,
+      strengths: [],
+      suggestion: null,
+    };
   }
-  if (entry.industry_match && startup?.industry) {
-    parts.push(`relevant ${startup.industry} experience`);
-  }
-  if (c.avg_success != null) {
-    parts.push(`${c.avg_success}% average project success from monthly reports`);
-  }
-  if (c.avg_engagement != null) {
-    parts.push(`${c.avg_engagement}% engagement from meeting minutes`);
-  }
-  return `${parts.join(". ")}. Recommended because of proven track record before AI profile matching.`;
 }

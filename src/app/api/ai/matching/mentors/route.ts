@@ -38,10 +38,13 @@ export async function POST(request: Request) {
     const { startup, mentors, explainTop = 3, interestedMentorIds = [], activeMentorIds = [] } = body;
 
     if (!startup || !mentors?.length) {
-      return NextResponse.json(
-        { error: "startup and mentors are required" },
-        { status: 400 }
-      );
+      // Return empty tiers instead of 400 error when no mentors available
+      return NextResponse.json({
+        previousCollaborations: [],
+        aiSuggested: [],
+        interested: [],
+        modelUsed: "gemini",
+      });
     }
 
     const data = await aiBackendFetch<TieredBackendResponse>(

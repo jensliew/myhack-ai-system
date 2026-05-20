@@ -23,7 +23,7 @@ export function useDocuments() {
   const [error, setError] = useState<ServiceError | null>(null);
 
   const fetchDocuments = useCallback(async () => {
-    if (!user || user.role !== "startup") return;
+    if (!user?.entityId || user.role !== "startup") return;
 
     setLoading(true);
     setError(null);
@@ -31,17 +31,18 @@ export function useDocuments() {
 
     if (result.error) {
       setError(result.error);
-    } else if (result.data) {
-      setDocuments(result.data);
+      console.error("fetchDocuments error:", result.error);
+    } else {
+      setDocuments(result.data ?? []);
     }
 
     setLoading(false);
   }, [user?.entityId, user?.role]);
 
+  // Fetch on mount and whenever entityId changes
   useEffect(() => {
-    if (!user) return;
     fetchDocuments();
-  }, [user?.entityId, fetchDocuments]);
+  }, [fetchDocuments]);
 
   const handleUpload = useCallback(
     async (params: Omit<DocumentUploadParams, "startupId" | "uploadedBy">) => {

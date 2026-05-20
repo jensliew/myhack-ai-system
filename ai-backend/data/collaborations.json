@@ -70,5 +70,28 @@
       "interaction_quality": "high",
       "summary": "Meeting between mentor and startup covered key topics including Product and Market. Engagement level: high."
     }
+  },
+  {
+    "mentor_id": "MENTORJUS",
+    "startup_id": "SEATONG01",
+    "startup_name": null,
+    "industry": null,
+    "stage": null,
+    "engagement_scores": [
+      90,
+      90
+    ],
+    "success_scores": [],
+    "meeting_minutes_count": 2,
+    "monthly_reports_count": 0,
+    "avg_engagement": 90,
+    "avg_success": null,
+    "collaboration_score": 94,
+    "last_meeting_analysis": {
+      "at": "2026-05-17T01:54:28.861Z",
+      "engagement_score": 90,
+      "interaction_quality": "high",
+      "summary": "Raj Patel provided SeaTong with actionable feedback on their seed round preparation and GTM strategy, ensuring the team is well-positioned for their next growth phase. The meeting resulted in clear technical and market-focused deliverables that will be reviewed in their upcoming follow-up session."
+    }
   }
 ]

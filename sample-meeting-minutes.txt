@@ -2,7 +2,7 @@ MEETING MINUTES
 ===============
 
 Date: May 15, 2026
-Attendees: Sarah Chen (Mentor), John Smith (Founder, SeaTong), Maria Garcia (CTO, SeaTong)
+Attendees: Raj Patel (Mentor), John Smith (Founder, SeaTong), Maria Garcia (CTO, SeaTong)
 Duration: 1 hour
 Location: Zoom
 

@@ -53,8 +53,8 @@ export async function getTieredStartupRecommendations(
     const interestedStartupIds =
       interestedResult.data?.map((i) => i.startupId) ?? [];
 
-    // Call AI backend directly (rule-based matching, no API quota needed)
-    const response = await fetch("http://localhost:3001/match/startups/tiered", {
+    // Call AI backend directly
+    const response = await fetch("http://localhost:3002/match/startups/tiered", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
