@@ -5,7 +5,6 @@ import {
   getDocs,
   query,
   where,
-  orderBy,
   Timestamp,
 } from "firebase/firestore";
 
@@ -15,13 +14,11 @@ import {
   aiRecommendationsCollection,
   engagementHistoryCollection,
   startupsCollection,
+  usersCollection,
 } from "@/firebase/collections";
 import type { ServiceResult } from "@/types/common.types";
-import type {
-  RelationshipRecord,
-  InterestRecord,
-  EngagementHistoryDocument,
-} from "@/types/matching.types";
+import type { RelationshipRecord, InterestRecord, EngagementHistoryDocument } from "@/types/matching.types";
+import { createNotification } from "@/services/notifications/notification.service";
 
 /**
  * Accepts a mentor for a startup, creating an active relationship.
@@ -75,6 +72,23 @@ export async function acceptMentor(
       projectPhase: "processing",
       updatedAt: now,
     });
+
+    // Notify the mentor that they were accepted
+    try {
+      const mentorUserSnap = await getDocs(
+        query(usersCollection, where("entityId", "==", mentorId))
+      );
+      if (!mentorUserSnap.empty) {
+        const mentorUserId = mentorUserSnap.docs[0].id;
+        await createNotification(
+          mentorUserId,
+          "mentor_accepted",
+          "Your mentorship was accepted!",
+          "A startup has accepted your mentorship. You can now message them and set milestones.",
+          `/mentor/relationships`
+        );
+      }
+    } catch { /* Non-critical */ }
 
     return {
       data: { ...relationshipData, id: relRef.id } as RelationshipRecord,
@@ -194,8 +208,34 @@ async function updateInterestStatus(
 }
 
 /**
- * Updates the status of an AI recommendation record.
+ * Completes a mentorship relationship.
  */
+export async function completeRelationship(
+  relationshipId: string,
+  completionNote?: string
+): Promise<ServiceResult<void>> {
+  try {
+    const now = Timestamp.now();
+    await updateDoc(doc(relationshipsCollection, relationshipId), {
+      status: "completed",
+      completedAt: now,
+      completionNote: completionNote ?? "",
+      updatedAt: now,
+    });
+    return { data: undefined, error: null };
+  } catch (error: unknown) {
+    const err = error as { code?: string };
+    return {
+      data: null,
+      error: {
+        code: err.code ?? "matching/complete-failed",
+        message: "Failed to complete relationship.",
+        retryable: true,
+      },
+    };
+  }
+}
+
 async function updateRecommendationStatus(
   mentorId: string,
   startupId: string,

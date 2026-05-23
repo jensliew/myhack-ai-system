@@ -16,7 +16,7 @@ export async function matchMentorsForStartup(startup, mentors, options = {}) {
   const ranked = rankMatches(startup, mentors, { limit });
   const withExplanation =
     explainTop > 0
-      ? await enrichTopMatches(startup, ranked, { explainCount: explainTop })
+      ? await enrichTopMatches(startup, ranked, { explainCount: Math.min(explainTop, 3) })
       : ranked;
   if (!format) return withExplanation;
   return formatMentorMatchList(withExplanation, startup);
@@ -27,9 +27,7 @@ export async function matchStartupsForMentor(mentor, startups, options = {}) {
   const ranked = rankStartupMatches(mentor, startups, { limit });
   const withExplanation =
     explainTop > 0
-      ? await enrichTopStartupMatches(mentor, ranked, {
-          explainCount: explainTop,
-        })
+      ? await enrichTopStartupMatches(mentor, ranked, { explainCount: Math.min(explainTop, 3) })
       : ranked;
   if (!format) return withExplanation;
   return formatStartupMatchList(withExplanation, mentor);

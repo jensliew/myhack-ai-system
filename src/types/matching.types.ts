@@ -2,64 +2,89 @@ import { Timestamp } from "firebase/firestore";
 
 import type { AIRecommendation } from "./ai.types";
 
-/**
- * Firestore document schema for the `mentor_interests` collection.
- */
 export interface InterestRecord {
-  id: string; // Auto-generated
-  mentorId: string; // Reference to mentors collection
-  startupId: string; // Reference to startups collection
+  id: string;
+  mentorId: string;
+  startupId: string;
   status: "pending" | "accepted" | "rejected";
   createdAt: Timestamp;
   updatedAt: Timestamp;
 }
 
-/**
- * Firestore document schema for the `relationships` collection.
- */
 export interface RelationshipRecord {
-  id: string; // Auto-generated
-  mentorId: string; // Reference to mentors collection
-  startupId: string; // Reference to startups collection
+  id: string;
+  mentorId: string;
+  startupId: string;
   status: "active" | "completed" | "paused";
   source: "ai_recommendation" | "mentor_interest";
-  engagementScore: number; // 0-100, updated over time
+  engagementScore: number;
   meetingCount: number;
-  phase?: "initial" | "processing" | "final"; // Project phase
+  phase?: "initial" | "processing" | "final";
   lastInteraction: Timestamp;
+  createdAt: Timestamp;
+  updatedAt: Timestamp;
+  completedAt?: Timestamp;
+  completionNote?: string;
+}
+
+export interface FeedbackDocument {
+  id: string;
+  relationshipId: string;
+  fromUserId: string;
+  fromRole: "startup" | "mentor";
+  toEntityId: string;
+  rating: number; // 1-5
+  comment: string;
+  highlights: string[]; // e.g. ["Great communicator", "Very knowledgeable"]
+  wouldRecommend: boolean;
+  createdAt: Timestamp;
+}
+
+export interface MessageDocument {
+  id: string;
+  relationshipId: string;
+  senderId: string;
+  senderRole: "startup" | "mentor";
+  senderName: string;
+  content: string;
+  read: boolean;
+  createdAt: Timestamp;
+}
+
+export interface NotificationDocument {
+  id: string;
+  userId: string;
+  type: "mentor_accepted" | "mentor_interested" | "message_received" | "document_uploaded" | "feedback_received" | "relationship_completed";
+  title: string;
+  body: string;
+  read: boolean;
+  link?: string;
+  createdAt: Timestamp;
+}
+
+export interface MilestoneDocument {
+  id: string;
+  relationshipId: string;
+  title: string;
+  description: string;
+  dueDate?: Timestamp;
+  completedAt?: Timestamp;
+  status: "pending" | "in_progress" | "completed" | "overdue";
+  createdBy: string;
   createdAt: Timestamp;
   updatedAt: Timestamp;
 }
 
-/**
- * Firestore document schema for the `feedback` collection.
- */
-export interface FeedbackDocument {
-  id: string; // Auto-generated
-  relationshipId: string; // Reference to relationships collection
-  fromUserId: string; // Reference to users collection
-  fromRole: "startup" | "mentor";
-  rating: number; // 1-5
-  comment: string;
-  createdAt: Timestamp;
-}
-
-/**
- * Firestore document schema for the `engagement_history` collection.
- */
 export interface EngagementHistoryDocument {
-  id: string; // Auto-generated
-  userId: string; // Reference to users collection
+  id: string;
+  userId: string;
   actionType: "interested" | "accepted" | "rejected" | "viewed";
-  targetId: string; // ID of the target entity (mentor or startup)
+  targetId: string;
   targetType: "mentor" | "startup";
-  metadata?: Record<string, unknown>; // Additional context
+  metadata?: Record<string, unknown>;
   createdAt: Timestamp;
 }
 
-/**
- * Zustand store state for the matching workflow.
- */
 export interface MatchingState {
   recommendations: AIRecommendation[];
   interestedMentors: InterestRecord[];

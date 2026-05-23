@@ -306,7 +306,7 @@ User profileStatus updated to "approved" in Firestore
 Required in `.env.local`:
 ```
 USE_AI_BACKEND=true
-AI_BACKEND_URL=http://localhost:3002
+AI_BACKEND_URL=http://localhost:3001
 ```
 
 ## Performance Notes

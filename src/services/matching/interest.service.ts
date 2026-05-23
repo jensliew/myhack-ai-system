@@ -10,9 +10,13 @@ import {
 import {
   mentorInterestsCollection,
   engagementHistoryCollection,
+  usersCollection,
+  startupsCollection,
+  mentorsCollection,
 } from "@/firebase/collections";
 import type { ServiceResult } from "@/types/common.types";
 import type { InterestRecord, EngagementHistoryDocument } from "@/types/matching.types";
+import { createNotification } from "@/services/notifications/notification.service";
 
 /**
  * Expresses a mentor's interest in a startup.
@@ -61,6 +65,26 @@ export async function expressInterest(
     };
 
     await addDoc(engagementHistoryCollection, engagementData);
+
+    // Notify the startup that a mentor is interested
+    try {
+      const startupUserSnap = await getDocs(
+        query(usersCollection, where("entityId", "==", startupId))
+      );
+      if (!startupUserSnap.empty) {
+        const mentorSnap = await getDocs(
+          query(mentorsCollection, where("id", "==", mentorId))
+        );
+        const mentorName = mentorSnap.empty ? "A mentor" : (mentorSnap.docs[0].data()?.name ?? "A mentor");
+        await createNotification(
+          startupUserSnap.docs[0].id,
+          "mentor_interested",
+          "A mentor is interested in you!",
+          `${mentorName} has expressed interest in your startup. Review their profile on your dashboard.`,
+          `/startup`
+        );
+      }
+    } catch { /* Non-critical */ }
 
     return {
       data: { ...interestData, id: interestRef.id } as InterestRecord,

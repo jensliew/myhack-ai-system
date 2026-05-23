@@ -6,18 +6,22 @@ import {
 import { getInterestedMentorIds } from "../services/interest-store.js";
 import { calculateMatchScore } from "../services/matching.js";
 import { formatMentorMatchCard } from "../services/match-presentation.js";
+import { callGemini } from "../services/gemini.js";
 
 function mentorId(mentor) {
   return mentor?.id ?? mentor?.mentor_id;
 }
 
-function formatCollaborationCard(entry, startup) {
+async function formatCollaborationCard(entry, startup) {
+  const collabReasoning = await buildCollaborationReasoning(entry, startup);
   const base = formatMentorMatchCard(
     {
       mentor: entry.mentor,
       score: entry.relevance_score,
       breakdown: [{ factor: "past_collaboration", points: entry.relevance_score }],
-      ai_match_reasoning: buildCollaborationReasoning(entry, startup),
+      ai_match_reasoning: collabReasoning.ai_match_reasoning,
+      strengths: collabReasoning.strengths,
+      suggestion: collabReasoning.suggestion,
     },
     startup
   );
@@ -44,15 +48,49 @@ function formatCollaborationCard(entry, startup) {
   };
 }
 
-function formatInterestedCard(mentor, startup) {
+async function formatInterestedCard(mentor, startup) {
   const { score, breakdown } = calculateMatchScore(startup, mentor);
+  const mentorName = mentor.full_name ?? mentor.name ?? "This mentor";
+  const startupName = startup?.name || startup?.startup_name || "your startup";
+  const mentorExpertise = Array.isArray(mentor.expertise)
+    ? mentor.expertise.join(", ")
+    : mentor.expertise || "";
+
+  const prompt = `You are an AI matching engine for a startup accelerator. This mentor has expressed interest in the startup. Write a personalised reasoning.
+
+Mentor: ${mentorName}
+Mentor expertise: ${mentorExpertise}
+Startup: ${startupName}
+Startup industry: ${startup?.industry || "Not specified"}
+Startup goals: ${Array.isArray(startup?.goals) ? startup.goals.join(", ") : startup?.goals || "Not specified"}
+Profile compatibility score: ${score}%
+
+Return ONLY a valid JSON object (no markdown, no extra text):
+{
+  "ai_match_reasoning": "<2 sentences explaining why this mentor's interest in ${startupName} makes sense based on their expertise and the startup's needs. Be specific and personalised.>",
+  "strengths": ["<specific strength 1>", "<specific strength 2>", "<specific strength 3>"],
+  "suggestion": "<one actionable next step for the startup to evaluate this mentor's fit>"
+}`;
+
+  let ai_match_reasoning = `${mentorName} expressed interest in joining ${startupName}. Profile compatibility is ${score}%.`;
+  let strengths = [];
+  let suggestion = null;
+
+  try {
+    const raw = await callGemini(prompt);
+    const jsonMatch = raw.match(/\{[\s\S]*\}/);
+    if (jsonMatch) {
+      const result = JSON.parse(jsonMatch[0]);
+      ai_match_reasoning = result.ai_match_reasoning ?? ai_match_reasoning;
+      strengths = result.strengths ?? [];
+      suggestion = result.suggestion ?? null;
+    }
+  } catch (err) {
+    console.error("Gemini interested card reasoning failed, using fallback:", err.message);
+  }
+
   const base = formatMentorMatchCard(
-    {
-      mentor,
-      score,
-      breakdown,
-      ai_match_reasoning: `${mentor.full_name ?? "This mentor"} expressed interest in joining your startup. Profile compatibility is ${score}%.`,
-    },
+    { mentor, score, breakdown, ai_match_reasoning, strengths, suggestion },
     startup
   );
   return {
@@ -91,19 +129,34 @@ export async function getTieredMentorRecommendations(
     active_mentor_ids = [],
   } = options;
 
-  const usedIds = new Set();
+  // Build a set of ALL mentor IDs to exclude (active relationships)
   const activeMentorIdSet = new Set(active_mentor_ids || []);
 
-  const collabRanked = rankMentorsByPastCollaboration(startup, mentors);
-  // Filter out active mentors from previous collaborations
-  const previous_collaborations = collabRanked
-    .filter((entry) => !activeMentorIdSet.has(entry.mentor_id))
-    .map((entry) => {
-      usedIds.add(entry.mentor_id);
-      return formatCollaborationCard(entry, startup);
-    });
+  // usedIds tracks mentors already placed in a tier to avoid duplicates
+  const usedIds = new Set();
+  // Pre-populate with active mentor IDs so they are excluded from ALL tiers
+  activeMentorIdSet.forEach((id) => usedIds.add(id));
 
-  const remainingForAi = mentors.filter((m) => !usedIds.has(mentorId(m)));
+  // Filter the mentor list upfront - remove any active mentors before processing
+  const eligibleMentors = mentors.filter((m) => !activeMentorIdSet.has(mentorId(m)));
+
+  const collabRanked = rankMentorsByPastCollaboration(startup, eligibleMentors);
+
+  // Previous collaborations - sequential with delay to avoid 429 quota errors
+  const previous_collaborations = [];
+  for (const entry of collabRanked) {
+    if (usedIds.has(entry.mentor_id)) continue;
+    usedIds.add(entry.mentor_id);
+    const card = await formatCollaborationCard(entry, startup);
+    previous_collaborations.push(card);
+    // Small delay between Gemini calls
+    if (collabRanked.indexOf(entry) < collabRanked.length - 1) {
+      await new Promise((r) => setTimeout(r, 500));
+    }
+  }
+
+  // AI suggested - only from eligible mentors not already used
+  const remainingForAi = eligibleMentors.filter((m) => !usedIds.has(mentorId(m)));
   const ai_suggested = tagTier2Cards(
     await matchMentorsForStartup(startup, remainingForAi, {
       limit,
@@ -112,12 +165,19 @@ export async function getTieredMentorRecommendations(
   );
   ai_suggested.forEach((c) => usedIds.add(c.mentor_id));
 
+  // Interested mentors - exclude active and already-used
   const interestedIds =
     interested_mentor_ids ??
     (startup_id ? getInterestedMentorIds(startup_id) : []);
-  const interested = mentors
-    .filter((m) => interestedIds.includes(mentorId(m)) && !usedIds.has(mentorId(m)))
-    .map((m) => formatInterestedCard(m, startup));
+
+  const interested = [];
+  for (const m of eligibleMentors) {
+    const mid = mentorId(m);
+    if (!interestedIds.includes(mid) || usedIds.has(mid)) continue;
+    usedIds.add(mid);
+    const card = await formatInterestedCard(m, startup);
+    interested.push(card);
+  }
 
   const all_ordered = [
     ...previous_collaborations,
@@ -131,10 +191,6 @@ export async function getTieredMentorRecommendations(
     ai_suggested,
     interested,
     all_ordered,
-    display_order: [
-      "previous_collaborations",
-      "ai_suggested",
-      "interested",
-    ],
+    display_order: ["previous_collaborations", "ai_suggested", "interested"],
   };
 }

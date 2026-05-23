@@ -1,10 +1,12 @@
 "use client";
 
-import { Users, Briefcase, Heart, Clock, TrendingUp, Activity, BarChart3 } from "lucide-react";
+import { Users, Briefcase, Heart, Clock, TrendingUp, Award, Activity } from "lucide-react";
 
 import { useAnalytics } from "@/hooks/useAnalytics";
 import { MetricCard } from "@/components/charts/MetricCard";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export default function AdminAnalyticsPage() {
   const { metrics, loading } = useAnalytics();
@@ -12,6 +14,30 @@ export default function AdminAnalyticsPage() {
   const matchRate = metrics.totalStartups > 0
     ? Math.round((metrics.activeRelationships / metrics.totalStartups) * 100)
     : 0;
+
+  const approvalRate = metrics.totalUsers > 0
+    ? Math.round(((metrics.totalStartups + metrics.totalMentors) / metrics.totalUsers) * 100)
+    : 0;
+
+  const avgMentorsPerStartup = metrics.totalStartups > 0
+    ? (metrics.activeRelationships / metrics.totalStartups).toFixed(1)
+    : "0";
+
+  if (loading) {
+    return (
+      <div className="space-y-6">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight">Analytics</h1>
+          <p className="mt-1 text-muted-foreground">Detailed ecosystem analytics and engagement metrics.</p>
+        </div>
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
+          {Array.from({ length: 5 }).map((_, i) => (
+            <Card key={i}><CardContent className="pt-6"><Skeleton className="h-8 w-16 mb-2" /><Skeleton className="h-4 w-24" /></CardContent></Card>
+          ))}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -22,208 +48,144 @@ export default function AdminAnalyticsPage() {
         </p>
       </div>
 
-      {loading && (
-        <div className="flex items-center justify-center py-12">
-          <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
-        </div>
-      )}
+      {/* Key Metrics */}
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
+        <MetricCard title="Total Users" value={metrics.totalUsers} icon={Users} color="violet" />
+        <MetricCard title="Startups" value={metrics.totalStartups} icon={Briefcase} color="blue" />
+        <MetricCard title="Mentors" value={metrics.totalMentors} icon={Users} color="teal" />
+        <MetricCard title="Active Mentorships" value={metrics.activeRelationships} icon={Heart} color="rose" />
+        <MetricCard title="Pending" value={metrics.pendingApplications} icon={Clock} color="amber" />
+      </div>
 
-      {!loading && (
-        <>
-          {/* Overview Metrics */}
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
-            <MetricCard title="Total Users" value={metrics.totalUsers} icon={Users} />
-            <MetricCard title="Startups" value={metrics.totalStartups} icon={Briefcase} />
-            <MetricCard title="Mentors" value={metrics.totalMentors} icon={Users} />
-            <MetricCard title="Active Mentorships" value={metrics.activeRelationships} icon={Heart} />
-            <MetricCard title="Pending" value={metrics.pendingApplications} icon={Clock} />
+      {/* Derived Metrics */}
+      <div className="grid gap-4 sm:grid-cols-3">
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+              <TrendingUp className="h-4 w-4" /> Match Rate
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-3xl font-bold text-primary">{matchRate}%</div>
+            <p className="text-xs text-muted-foreground mt-1">Startups with active mentors</p>
+            <div className="mt-3 h-2 rounded-full bg-secondary overflow-hidden">
+              <div className="h-full bg-primary transition-all duration-700" style={{ width: `${matchRate}%` }} />
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+              <Award className="h-4 w-4" /> Approval Rate
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-3xl font-bold text-green-600">{approvalRate}%</div>
+            <p className="text-xs text-muted-foreground mt-1">Applications approved</p>
+            <div className="mt-3 h-2 rounded-full bg-secondary overflow-hidden">
+              <div className="h-full bg-green-500 transition-all duration-700" style={{ width: `${approvalRate}%` }} />
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+              <Activity className="h-4 w-4" /> Avg Mentors / Startup
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-3xl font-bold text-blue-600">{avgMentorsPerStartup}</div>
+            <p className="text-xs text-muted-foreground mt-1">Active mentors per startup</p>
+            <div className="mt-3 h-2 rounded-full bg-secondary overflow-hidden">
+              <div className="h-full bg-blue-500 transition-all duration-700" style={{ width: `${Math.min(Number(avgMentorsPerStartup) * 33, 100)}%` }} />
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Ecosystem Breakdown */}
+      <div className="grid gap-4 sm:grid-cols-2">
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">User Distribution</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {[
+              { label: "Startups", value: metrics.totalStartups, total: metrics.totalUsers, color: "bg-blue-500" },
+              { label: "Mentors", value: metrics.totalMentors, total: metrics.totalUsers, color: "bg-purple-500" },
+              { label: "Pending", value: metrics.pendingApplications, total: metrics.totalUsers, color: "bg-yellow-500" },
+            ].map(({ label, value, total, color }) => {
+              const pct = total > 0 ? Math.round((value / total) * 100) : 0;
+              return (
+                <div key={label}>
+                  <div className="flex justify-between text-sm mb-1">
+                    <span className="text-muted-foreground">{label}</span>
+                    <span className="font-medium">{value} <span className="text-muted-foreground">({pct}%)</span></span>
+                  </div>
+                  <div className="h-2 rounded-full bg-secondary overflow-hidden">
+                    <div className={`h-full ${color} transition-all duration-700`} style={{ width: `${pct}%` }} />
+                  </div>
+                </div>
+              );
+            })}
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">Ecosystem Health</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            {[
+              {
+                label: "Mentorship Coverage",
+                value: matchRate,
+                status: matchRate >= 60 ? "Healthy" : matchRate >= 30 ? "Growing" : "Needs Attention",
+                color: matchRate >= 60 ? "text-green-600" : matchRate >= 30 ? "text-yellow-600" : "text-red-600",
+                bg: matchRate >= 60 ? "bg-green-100 text-green-800" : matchRate >= 30 ? "bg-yellow-100 text-yellow-800" : "bg-red-100 text-red-800",
+              },
+              {
+                label: "Application Pipeline",
+                value: metrics.pendingApplications,
+                status: metrics.pendingApplications === 0 ? "Clear" : metrics.pendingApplications <= 5 ? "Active" : "High Volume",
+                color: metrics.pendingApplications === 0 ? "text-green-600" : "text-yellow-600",
+                bg: metrics.pendingApplications === 0 ? "bg-green-100 text-green-800" : "bg-yellow-100 text-yellow-800",
+              },
+              {
+                label: "Mentor-Startup Ratio",
+                value: metrics.totalMentors,
+                status: metrics.totalMentors >= metrics.totalStartups ? "Balanced" : "Mentor Needed",
+                color: metrics.totalMentors >= metrics.totalStartups ? "text-green-600" : "text-orange-600",
+                bg: metrics.totalMentors >= metrics.totalStartups ? "bg-green-100 text-green-800" : "bg-orange-100 text-orange-800",
+              },
+            ].map(({ label, status, bg }) => (
+              <div key={label} className="flex items-center justify-between py-2 border-b last:border-0">
+                <span className="text-sm text-muted-foreground">{label}</span>
+                <Badge className={`text-xs ${bg}`}>{status}</Badge>
+              </div>
+            ))}
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Summary */}
+      <Card className="bg-primary/5 border-primary/20">
+        <CardContent className="pt-6">
+          <div className="flex items-start gap-3">
+            <TrendingUp className="h-5 w-5 text-primary mt-0.5 shrink-0" />
+            <div>
+              <p className="text-sm font-medium">Ecosystem Summary</p>
+              <p className="text-sm text-muted-foreground mt-1">
+                The platform has <strong>{metrics.totalUsers}</strong> registered users with <strong>{metrics.activeRelationships}</strong> active mentorships.
+                {metrics.pendingApplications > 0 && ` There are ${metrics.pendingApplications} pending application${metrics.pendingApplications > 1 ? "s" : ""} awaiting review.`}
+                {matchRate > 0 && ` ${matchRate}% of startups have active mentor relationships.`}
+              </p>
+            </div>
           </div>
-
-          {/* Charts */}
-          <div className="grid gap-4 lg:grid-cols-2">
-            {/* Monthly Registrations */}
-            <Card>
-              <CardHeader className="pb-2">
-                <div className="flex items-center gap-2">
-                  <TrendingUp className="h-4 w-4 text-primary" />
-                  <CardTitle className="text-sm font-medium">Monthly Registrations</CardTitle>
-                </div>
-              </CardHeader>
-              <CardContent>
-                <div className="flex items-end gap-2 h-44 pt-4">
-                  {[
-                    { startups: 3, mentors: 2 },
-                    { startups: 5, mentors: 3 },
-                    { startups: 4, mentors: 4 },
-                    { startups: 7, mentors: 5 },
-                    { startups: 6, mentors: 6 },
-                    { startups: 9, mentors: 7 },
-                  ].map((month, i) => (
-                    <div key={i} className="flex-1 flex items-end gap-0.5">
-                      <div
-                        className="flex-1 rounded-t bg-primary/70 hover:bg-primary transition-colors"
-                        style={{ height: `${month.startups * 10}%` }}
-                        title={`${month.startups} startups`}
-                      />
-                      <div
-                        className="flex-1 rounded-t bg-blue-300/70 hover:bg-blue-300 transition-colors"
-                        style={{ height: `${month.mentors * 10}%` }}
-                        title={`${month.mentors} mentors`}
-                      />
-                    </div>
-                  ))}
-                </div>
-                <div className="flex items-center justify-between mt-3">
-                  <div className="flex items-center gap-4 text-xs text-muted-foreground">
-                    <div className="flex items-center gap-1.5">
-                      <div className="h-2.5 w-2.5 rounded-sm bg-primary/70" />
-                      <span>Startups</span>
-                    </div>
-                    <div className="flex items-center gap-1.5">
-                      <div className="h-2.5 w-2.5 rounded-sm bg-blue-300/70" />
-                      <span>Mentors</span>
-                    </div>
-                  </div>
-                  <span className="text-xs text-muted-foreground">Last 6 months</span>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Mentorship Outcomes */}
-            <Card>
-              <CardHeader className="pb-2">
-                <div className="flex items-center gap-2">
-                  <BarChart3 className="h-4 w-4 text-primary" />
-                  <CardTitle className="text-sm font-medium">Mentorship Outcomes</CardTitle>
-                </div>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4 pt-4">
-                  <div>
-                    <div className="flex items-center justify-between text-sm mb-2">
-                      <span className="text-foreground font-medium">AI Match Acceptance</span>
-                      <span className="text-primary font-bold">{matchRate > 0 ? matchRate : 68}%</span>
-                    </div>
-                    <div className="h-3 rounded-full bg-muted">
-                      <div className="h-3 rounded-full bg-gradient-to-r from-primary to-blue-400" style={{ width: `${matchRate > 0 ? matchRate : 68}%` }} />
-                    </div>
-                  </div>
-                  <div>
-                    <div className="flex items-center justify-between text-sm mb-2">
-                      <span className="text-foreground font-medium">Mentor Interest Rate</span>
-                      <span className="text-green-600 font-bold">74%</span>
-                    </div>
-                    <div className="h-3 rounded-full bg-muted">
-                      <div className="h-3 rounded-full bg-gradient-to-r from-green-500 to-emerald-400" style={{ width: "74%" }} />
-                    </div>
-                  </div>
-                  <div>
-                    <div className="flex items-center justify-between text-sm mb-2">
-                      <span className="text-foreground font-medium">Engagement Score Avg</span>
-                      <span className="text-purple-600 font-bold">82%</span>
-                    </div>
-                    <div className="h-3 rounded-full bg-muted">
-                      <div className="h-3 rounded-full bg-gradient-to-r from-purple-500 to-violet-400" style={{ width: "82%" }} />
-                    </div>
-                  </div>
-                  <div>
-                    <div className="flex items-center justify-between text-sm mb-2">
-                      <span className="text-foreground font-medium">Startup Satisfaction</span>
-                      <span className="text-orange-600 font-bold">89%</span>
-                    </div>
-                    <div className="h-3 rounded-full bg-muted">
-                      <div className="h-3 rounded-full bg-gradient-to-r from-orange-500 to-amber-400" style={{ width: "89%" }} />
-                    </div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* Activity & Industry Breakdown */}
-          <div className="grid gap-4 lg:grid-cols-3">
-            {/* Industry Distribution */}
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium">Industry Distribution</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-3 pt-2">
-                  {[
-                    { name: "FinTech", pct: 28, color: "bg-blue-500" },
-                    { name: "EdTech", pct: 22, color: "bg-purple-500" },
-                    { name: "HealthTech", pct: 18, color: "bg-green-500" },
-                    { name: "SaaS", pct: 15, color: "bg-orange-500" },
-                    { name: "CleanTech", pct: 10, color: "bg-cyan-500" },
-                    { name: "Other", pct: 7, color: "bg-gray-400" },
-                  ].map((item) => (
-                    <div key={item.name} className="flex items-center gap-3">
-                      <div className={`h-3 w-3 rounded-full ${item.color} shrink-0`} />
-                      <span className="text-sm text-foreground flex-1">{item.name}</span>
-                      <div className="w-20 h-2 rounded-full bg-muted">
-                        <div className={`h-2 rounded-full ${item.color}`} style={{ width: `${item.pct}%` }} />
-                      </div>
-                      <span className="text-xs text-muted-foreground w-8 text-right">{item.pct}%</span>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Stage Distribution */}
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium">Startup Stages</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-3 pt-2">
-                  {[
-                    { name: "Idea", count: 4, color: "bg-slate-400" },
-                    { name: "Pre-Seed", count: 8, color: "bg-blue-400" },
-                    { name: "Seed", count: 12, color: "bg-green-500" },
-                    { name: "Series A", count: 6, color: "bg-purple-500" },
-                    { name: "Series B", count: 3, color: "bg-orange-500" },
-                    { name: "Growth", count: 2, color: "bg-red-500" },
-                  ].map((item) => (
-                    <div key={item.name} className="flex items-center gap-3">
-                      <div className={`h-3 w-3 rounded-sm ${item.color} shrink-0`} />
-                      <span className="text-sm text-foreground flex-1">{item.name}</span>
-                      <span className="text-sm font-medium">{item.count}</span>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Recent Activity */}
-            <Card>
-              <CardHeader className="pb-2">
-                <div className="flex items-center gap-2">
-                  <Activity className="h-4 w-4 text-primary" />
-                  <CardTitle className="text-sm font-medium">Recent Activity</CardTitle>
-                </div>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-3 pt-2">
-                  {[
-                    { action: "Sarah Chen expressed interest in FinPay", time: "5m", color: "bg-blue-500" },
-                    { action: "EduVerse accepted David Park", time: "12m", color: "bg-green-500" },
-                    { action: "New mentor registered", time: "1h", color: "bg-purple-500" },
-                    { action: "AI verification: Approved", time: "2h", color: "bg-orange-500" },
-                    { action: "Monthly report uploaded", time: "3h", color: "bg-cyan-500" },
-                  ].map((item, i) => (
-                    <div key={i} className="flex items-center gap-3">
-                      <div className={`h-2 w-2 rounded-full ${item.color} shrink-0`} />
-                      <span className="text-xs text-foreground flex-1 line-clamp-1">{item.action}</span>
-                      <span className="text-[10px] text-muted-foreground shrink-0">{item.time}</span>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        </>
-      )}
+        </CardContent>
+      </Card>
     </div>
   );
 }

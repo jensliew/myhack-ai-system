@@ -57,8 +57,20 @@ export function AppShell({ children }: AppShellProps) {
           onLogout={onLogout}
         />
 
-        <main className={cn("flex-1 overflow-y-auto p-4 lg:p-6")}>
-          {children}
+        <main className={cn("flex-1 overflow-y-auto p-4 lg:p-6 relative")}>
+          {/* Background dot grid — fixed to viewport */}
+          <div className="pointer-events-none fixed inset-0 bg-[radial-gradient(#d4d4d8_1px,transparent_1px)] [background-size:20px_20px] opacity-50" />
+          {/* Top-right: warm amber glow */}
+          <div className="pointer-events-none fixed -top-32 -right-32 w-[500px] h-[500px] bg-amber-300/[0.06] rounded-full blur-3xl" />
+          {/* Bottom-left: cool teal glow */}
+          <div className="pointer-events-none fixed -bottom-32 -left-32 w-[500px] h-[500px] bg-teal-400/[0.06] rounded-full blur-3xl" />
+          {/* Center-left: soft indigo */}
+          <div className="pointer-events-none fixed top-1/2 -left-48 w-[400px] h-[600px] bg-indigo-400/[0.04] rounded-full blur-3xl" />
+          {/* Center-right: soft rose */}
+          <div className="pointer-events-none fixed top-1/4 -right-48 w-[400px] h-[500px] bg-rose-300/[0.04] rounded-full blur-3xl" />
+          <div className="relative">
+            {children}
+          </div>
         </main>
       </div>
     </div>

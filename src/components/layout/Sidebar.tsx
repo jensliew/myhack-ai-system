@@ -11,10 +11,13 @@ import {
   Briefcase,
   Heart,
   LogOut,
+  MessageSquare,
+  History,
+  Link2,
+  Sparkles,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import { Separator } from "@/components/ui/separator";
 import type { UserRole } from "@/types/user.types";
 
 export interface NavItem {
@@ -26,21 +29,26 @@ export interface NavItem {
 const adminNavItems: NavItem[] = [
   { label: "Dashboard", href: "/admin", icon: LayoutDashboard },
   { label: "Applications", href: "/admin/applications", icon: FileText },
+  { label: "Relationships", href: "/admin/relationships", icon: Link2 },
   { label: "Analytics", href: "/admin/analytics", icon: BarChart3 },
   { label: "Users", href: "/admin/users", icon: Users },
 ];
 
 const startupNavItems: NavItem[] = [
   { label: "Dashboard", href: "/startup", icon: LayoutDashboard },
+  { label: "My Mentors", href: "/startup/mentors", icon: Users },
   { label: "Documents", href: "/startup/documents", icon: FileText },
-  { label: "Mentors", href: "/startup/mentors", icon: Users },
+  { label: "History", href: "/startup/history", icon: History },
   { label: "Profile", href: "/startup/profile", icon: UserCircle },
 ];
 
 const mentorNavItems: NavItem[] = [
   { label: "Dashboard", href: "/mentor", icon: LayoutDashboard },
+  { label: "AI Matching", href: "/mentor/matching", icon: Sparkles },
   { label: "Startups", href: "/mentor/startups", icon: Briefcase },
   { label: "Relationships", href: "/mentor/relationships", icon: Heart },
+  { label: "Interested", href: "/mentor/interested", icon: MessageSquare },
+  { label: "History", href: "/mentor/history", icon: History },
   { label: "Profile", href: "/mentor/profile", icon: UserCircle },
 ];
 
@@ -69,24 +77,31 @@ export function Sidebar({ role, collapsed = false, onLogout }: SidebarProps) {
 
   return (
     <div className="flex h-full flex-col bg-sidebar">
-      {/* Logo + Role */}
-      <div className={cn("flex flex-col border-b border-sidebar-border px-4 py-3", collapsed && "items-center px-2")}>
+      {/* Logo */}
+      <div
+        className={cn(
+          "flex h-16 items-center border-b border-sidebar-border px-5",
+          collapsed && "justify-center px-2"
+        )}
+      >
         {collapsed ? (
-          <span className="text-lg font-bold text-sidebar-primary">N</span>
+          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary">
+            <span className="text-sm font-bold text-white">N</span>
+          </div>
         ) : (
-          <>
-            <span className="text-lg font-bold text-sidebar-primary">Nexora</span>
-            {role && (
-              <span className="mt-1 inline-flex items-center rounded-md bg-primary/10 px-2 py-0.5 text-xs font-semibold text-primary capitalize w-fit">
-                {role} Portal
-              </span>
-            )}
-          </>
+          <div className="flex items-center gap-2.5">
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary">
+              <span className="text-sm font-bold text-white">N</span>
+            </div>
+            <span className="text-[15px] font-semibold tracking-tight text-sidebar-primary">
+              Nexora
+            </span>
+          </div>
         )}
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 space-y-1 px-2 py-4">
+      <nav className="flex-1 space-y-0.5 px-3 py-4">
         {navItems.map((item) => {
           const isActive =
             pathname === item.href ||
@@ -97,15 +112,20 @@ export function Sidebar({ role, collapsed = false, onLogout }: SidebarProps) {
               key={item.href}
               href={item.href}
               className={cn(
-                "flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors",
+                "flex items-center gap-3 rounded-lg px-3 py-2.5 text-[13px] font-medium transition-colors duration-150",
                 isActive
-                  ? "bg-sidebar-accent text-sidebar-primary"
-                  : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
+                  ? "bg-sidebar-accent text-sidebar-accent-foreground"
+                  : "text-sidebar-foreground hover:bg-sidebar-accent/60 hover:text-sidebar-accent-foreground",
                 collapsed && "justify-center px-2"
               )}
               title={collapsed ? item.label : undefined}
             >
-              <item.icon className="h-5 w-5 shrink-0" />
+              <item.icon
+                className={cn(
+                  "h-[18px] w-[18px] shrink-0",
+                  isActive ? "text-primary" : ""
+                )}
+              />
               {!collapsed && <span>{item.label}</span>}
             </Link>
           );
@@ -113,17 +133,16 @@ export function Sidebar({ role, collapsed = false, onLogout }: SidebarProps) {
       </nav>
 
       {/* Logout */}
-      <div className="border-t border-sidebar-border p-2">
-        <Separator className="mb-2 hidden" />
+      <div className="border-t border-sidebar-border p-3">
         <Button
           variant="ghost"
           className={cn(
-            "w-full justify-start gap-3 text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
+            "w-full justify-start gap-3 rounded-lg text-[13px] font-medium text-sidebar-foreground hover:bg-sidebar-accent/60 hover:text-sidebar-accent-foreground",
             collapsed && "justify-center px-2"
           )}
           onClick={onLogout}
         >
-          <LogOut className="h-5 w-5 shrink-0" />
+          <LogOut className="h-[18px] w-[18px] shrink-0" />
           {!collapsed && <span>Logout</span>}
         </Button>
       </div>
