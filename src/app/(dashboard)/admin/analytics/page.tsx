@@ -50,11 +50,11 @@ export default function AdminAnalyticsPage() {
 
       {/* Key Metrics */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
-        <MetricCard title="Total Users" value={metrics.totalUsers} icon={Users} />
-        <MetricCard title="Startups" value={metrics.totalStartups} icon={Briefcase} />
-        <MetricCard title="Mentors" value={metrics.totalMentors} icon={Users} />
-        <MetricCard title="Active Mentorships" value={metrics.activeRelationships} icon={Heart} />
-        <MetricCard title="Pending" value={metrics.pendingApplications} icon={Clock} />
+        <MetricCard title="Total Users" value={metrics.totalUsers} icon={Users} color="violet" />
+        <MetricCard title="Startups" value={metrics.totalStartups} icon={Briefcase} color="blue" />
+        <MetricCard title="Mentors" value={metrics.totalMentors} icon={Users} color="teal" />
+        <MetricCard title="Active Mentorships" value={metrics.activeRelationships} icon={Heart} color="rose" />
+        <MetricCard title="Pending" value={metrics.pendingApplications} icon={Clock} color="amber" />
       </div>
 
       {/* Derived Metrics */}

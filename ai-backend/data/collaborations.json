@@ -93,5 +93,27 @@
       "interaction_quality": "high",
       "summary": "Raj Patel provided SeaTong with actionable feedback on their seed round preparation and GTM strategy, ensuring the team is well-positioned for their next growth phase. The meeting resulted in clear technical and market-focused deliverables that will be reviewed in their upcoming follow-up session."
     }
+  },
+  {
+    "mentor_id": "raj-patel",
+    "startup_id": "finpay",
+    "startup_name": null,
+    "industry": null,
+    "stage": null,
+    "engagement_scores": [
+      95
+    ],
+    "success_scores": [],
+    "meeting_minutes_count": 1,
+    "monthly_reports_count": 0,
+    "avg_engagement": 95,
+    "avg_success": null,
+    "collaboration_score": 97,
+    "last_meeting_analysis": {
+      "at": "2026-05-23T13:19:50.056Z",
+      "engagement_score": 95,
+      "interaction_quality": "high",
+      "summary": "FinPay Solutions and mentor Raj Patel conducted a highly productive session focused on refining the company's Series A strategy and expansion plans for Indonesia. The meeting resulted in clear, actionable steps to strengthen the startup's financial model and investor materials ahead of their Q3 fundraising target."
+    }
   }
 ]

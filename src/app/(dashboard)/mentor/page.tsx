@@ -41,75 +41,86 @@ export default function MentorDashboardPage() {
   const previewStartups = allStartups.slice(0, 6);
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
+      {/* Page Header */}
       <div>
-        <h1 className="text-2xl font-bold tracking-tight">Mentor Dashboard</h1>
-        <p className="mt-1 text-muted-foreground">Overview of your mentorship activities.</p>
+        <h1 className="text-2xl font-semibold tracking-tight">Dashboard</h1>
+        <p className="mt-1 text-[13px] text-muted-foreground">
+          Overview of your mentorship activities and recommendations.
+        </p>
       </div>
 
       {/* Metrics */}
-      <div className="grid gap-4 sm:grid-cols-4">
-        <MetricCard title="Available Startups" value={countsLoading ? "—" : allStartups.length} icon={Briefcase} description="Startups seeking mentors" />
-        <MetricCard title="Pending Interests" value={countsLoading ? "—" : interestedCount} icon={Heart} description="Awaiting startup response" />
-        <MetricCard title="Active Mentorships" value={countsLoading ? "—" : activeCount} icon={TrendingUp} description="Ongoing relationships" />
-        <MetricCard title="Ecosystem Size" value={countsLoading ? "—" : allStartups.length + activeCount} icon={Users} description="Startups + relationships" />
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <MetricCard title="Available Startups" value={countsLoading ? "—" : allStartups.length} icon={Briefcase} color="blue" description="Seeking mentors" />
+        <MetricCard title="Pending Interests" value={countsLoading ? "—" : interestedCount} icon={Heart} color="amber" description="Awaiting response" />
+        <MetricCard title="Active Mentorships" value={countsLoading ? "—" : activeCount} icon={TrendingUp} color="emerald" description="Ongoing" />
+        <MetricCard title="Ecosystem Size" value={countsLoading ? "—" : allStartups.length + activeCount} icon={Users} color="violet" description="Total connections" />
       </div>
 
       {/* Quick Actions */}
       <div className="grid gap-4 sm:grid-cols-2">
         {/* AI Matching */}
-        <div className="rounded-lg border bg-gradient-to-r from-primary/10 to-primary/5 p-4">
-          <div className="flex items-start justify-between gap-3">
-            <div>
-              <div className="flex items-center gap-2 mb-1">
-                <Sparkles className="h-4 w-4 text-primary" />
-                <h3 className="font-semibold">AI Startup Matching</h3>
+        <Card className="border-primary/10 bg-gradient-to-br from-primary/[0.03] to-transparent">
+          <CardContent className="p-5">
+            <div className="flex items-start justify-between gap-4">
+              <div className="space-y-1.5">
+                <div className="flex items-center gap-2">
+                  <Sparkles className="h-4 w-4 text-primary" />
+                  <h3 className="text-[14px] font-semibold">AI Matching</h3>
+                </div>
+                <p className="text-[12px] text-muted-foreground leading-relaxed">
+                  Get personalised startup recommendations based on your expertise.
+                </p>
               </div>
-              <p className="text-sm text-muted-foreground">Get personalised startup recommendations based on your expertise and industry.</p>
+              <Link href="/mentor/matching" className="shrink-0">
+                <Button size="sm" className="gap-1.5 text-[12px] cursor-pointer">
+                  View <ArrowRight className="h-3.5 w-3.5" />
+                </Button>
+              </Link>
             </div>
-            <Link href="/mentor/matching" className="shrink-0">
-              <Button size="sm" className="gap-1.5">
-                View Matches <ArrowRight className="h-4 w-4" />
-              </Button>
-            </Link>
-          </div>
-        </div>
+          </CardContent>
+        </Card>
 
         {/* Pending Interests */}
-        <div className={`rounded-lg border p-4 ${interestedCount > 0 ? "bg-yellow-50 border-yellow-200" : "bg-card"}`}>
-          <div className="flex items-start justify-between gap-3">
-            <div>
-              <div className="flex items-center gap-2 mb-1">
-                <Clock className="h-4 w-4 text-yellow-600" />
-                <h3 className="font-semibold">Pending Interests</h3>
+        <Card className={interestedCount > 0 ? "border-amber-200/60 bg-amber-50/30" : ""}>
+          <CardContent className="p-5">
+            <div className="flex items-start justify-between gap-4">
+              <div className="space-y-1.5">
+                <div className="flex items-center gap-2">
+                  <Clock className="h-4 w-4 text-amber-600" />
+                  <h3 className="text-[14px] font-semibold">Pending Interests</h3>
+                </div>
+                {interestedCount > 0 ? (
+                  <p className="text-[12px] text-muted-foreground leading-relaxed">
+                    <span className="font-semibold text-amber-700">{interestedCount}</span> startup{interestedCount !== 1 ? "s" : ""} awaiting response.
+                  </p>
+                ) : (
+                  <p className="text-[12px] text-muted-foreground leading-relaxed">
+                    No pending interests. Browse startups to connect.
+                  </p>
+                )}
               </div>
-              {interestedCount > 0 ? (
-                <p className="text-sm text-muted-foreground">
-                  You have <span className="font-semibold text-yellow-700">{interestedCount}</span> startup{interestedCount !== 1 ? "s" : ""} awaiting your interest response.
-                </p>
-              ) : (
-                <p className="text-sm text-muted-foreground">No pending interests. Browse startups to express interest.</p>
-              )}
+              <Link href="/mentor/interested" className="shrink-0">
+                <Button size="sm" variant="outline" className="gap-1.5 text-[12px] cursor-pointer">
+                  View <ArrowRight className="h-3.5 w-3.5" />
+                </Button>
+              </Link>
             </div>
-            <Link href="/mentor/interested" className="shrink-0">
-              <Button size="sm" variant="outline" className="gap-1.5">
-                View <ArrowRight className="h-4 w-4" />
-              </Button>
-            </Link>
-          </div>
-        </div>
+          </CardContent>
+        </Card>
       </div>
 
       {/* Browse Startups Preview */}
       <div>
         <div className="flex items-center justify-between mb-4">
           <div>
-            <h2 className="text-lg font-semibold">Browse Startups</h2>
-            <p className="text-sm text-muted-foreground">Startups currently seeking mentors</p>
+            <h2 className="text-[16px] font-semibold">Browse Startups</h2>
+            <p className="text-[12px] text-muted-foreground">Startups currently seeking mentors</p>
           </div>
           <Link href="/mentor/startups">
-            <Button variant="ghost" size="sm" className="gap-1.5">
-              View All <ArrowRight className="h-4 w-4" />
+            <Button variant="ghost" size="sm" className="gap-1.5 text-[12px] cursor-pointer">
+              View All <ArrowRight className="h-3.5 w-3.5" />
             </Button>
           </Link>
         </div>
@@ -117,19 +128,19 @@ export default function MentorDashboardPage() {
         {startupsLoading && (
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {Array.from({ length: 6 }).map((_, i) => (
-              <Card key={i}><CardContent className="pt-6 space-y-3">
-                <Skeleton className="h-5 w-32" />
-                <Skeleton className="h-4 w-24" />
-                <Skeleton className="h-4 w-full" />
+              <Card key={i}><CardContent className="pt-5 space-y-3">
+                <Skeleton className="h-4 w-32" />
+                <Skeleton className="h-3 w-24" />
+                <Skeleton className="h-3 w-full" />
               </CardContent></Card>
             ))}
           </div>
         )}
 
         {!startupsLoading && previewStartups.length === 0 && (
-          <div className="rounded-md border border-dashed px-4 py-8 text-center">
-            <Briefcase className="mx-auto h-10 w-10 text-muted-foreground/30 mb-2" />
-            <p className="text-muted-foreground">No startups available yet.</p>
+          <div className="rounded-lg border border-dashed px-4 py-10 text-center">
+            <Briefcase className="mx-auto h-8 w-8 text-muted-foreground/30 mb-2" />
+            <p className="text-[13px] text-muted-foreground">No startups available yet.</p>
           </div>
         )}
 
@@ -144,24 +155,26 @@ export default function MentorDashboardPage() {
 
       {/* Active Relationships Link */}
       {activeCount > 0 && (
-        <div className="rounded-lg border bg-green-50 border-green-200 p-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <div className="flex items-center gap-2 mb-1">
-                <TrendingUp className="h-4 w-4 text-green-600" />
-                <h3 className="font-semibold text-green-800">Active Mentorships</h3>
+        <Card className="border-emerald-200/60 bg-emerald-50/30">
+          <CardContent className="p-5">
+            <div className="flex items-center justify-between">
+              <div className="space-y-1">
+                <div className="flex items-center gap-2">
+                  <TrendingUp className="h-4 w-4 text-emerald-600" />
+                  <h3 className="text-[14px] font-semibold text-emerald-800">Active Mentorships</h3>
+                </div>
+                <p className="text-[12px] text-emerald-700">
+                  <span className="font-semibold">{activeCount}</span> active mentorship{activeCount !== 1 ? "s" : ""}. Track engagement and meetings.
+                </p>
               </div>
-              <p className="text-sm text-green-700">
-                You have <span className="font-semibold">{activeCount}</span> active mentorship{activeCount !== 1 ? "s" : ""}. Track engagement and meetings.
-              </p>
+              <Link href="/mentor/relationships">
+                <Button size="sm" variant="outline" className="gap-1.5 text-[12px] border-emerald-200 text-emerald-700 hover:bg-emerald-50 cursor-pointer">
+                  View <ArrowRight className="h-3.5 w-3.5" />
+                </Button>
+              </Link>
             </div>
-            <Link href="/mentor/relationships">
-              <Button size="sm" variant="outline" className="gap-1.5 border-green-300 text-green-700 hover:bg-green-100">
-                View <ArrowRight className="h-4 w-4" />
-              </Button>
-            </Link>
-          </div>
-        </div>
+          </CardContent>
+        </Card>
       )}
     </div>
   );
@@ -169,20 +182,22 @@ export default function MentorDashboardPage() {
 
 function StartupPreviewCard({ startup }: { startup: StartupDocument }) {
   return (
-    <Card className="transition-shadow duration-200 hover:shadow-md cursor-pointer">
-      <CardHeader className="pb-3">
-        <CardTitle className="text-base">{startup.name}</CardTitle>
-        <div className="flex flex-wrap gap-1.5">
-          <Badge variant="default" className="text-xs">{startup.industry}</Badge>
-          <Badge variant="secondary" className="text-xs">{startup.stage}</Badge>
+    <Card className="transition-all duration-200 hover:shadow-sm hover:border-primary/20 cursor-pointer group">
+      <CardHeader className="pb-2 pt-4 px-4">
+        <CardTitle className="text-[14px] font-semibold group-hover:text-primary transition-colors duration-150">
+          {startup.name}
+        </CardTitle>
+        <div className="flex flex-wrap gap-1.5 pt-1">
+          <Badge variant="default" className="text-[10px] font-medium px-1.5 py-0">{startup.industry}</Badge>
+          <Badge variant="secondary" className="text-[10px] font-medium px-1.5 py-0">{startup.stage}</Badge>
         </div>
       </CardHeader>
-      <CardContent>
-        <p className="text-sm text-muted-foreground line-clamp-2">{startup.description}</p>
+      <CardContent className="px-4 pb-4">
+        <p className="text-[12px] text-muted-foreground line-clamp-2 leading-relaxed">{startup.description}</p>
         {startup.goals && startup.goals.length > 0 && (
           <div className="flex flex-wrap gap-1 mt-2">
             {startup.goals.slice(0, 2).map((goal) => (
-              <Badge key={goal} variant="outline" className="text-xs">{goal}</Badge>
+              <Badge key={goal} variant="outline" className="text-[10px] px-1.5 py-0">{goal}</Badge>
             ))}
           </div>
         )}

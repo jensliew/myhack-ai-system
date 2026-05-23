@@ -55,7 +55,7 @@ const phaseGuidance: Record<ProjectPhase, { title: string; description: string; 
 
 export default function StartupDashboardPage() {
   const { user } = useAuth();
-  const { tiers, loading, error, refresh, removeFromTier } =
+  const { tiers, loading, error, refresh, removeFromTier, hasUpdates } =
     useTieredRecommendations();
 
   const [mentorProfiles, setMentorProfiles] = useState<
@@ -251,25 +251,31 @@ export default function StartupDashboardPage() {
 
       {/* Quick Stats */}
       <div className="grid gap-3 sm:grid-cols-3">
-        <div className="rounded-lg border bg-card px-4 py-3 flex items-center gap-3">
-          <Users className="h-8 w-8 text-green-500/50" />
+        <div className="rounded-lg border border-emerald-100 bg-card px-4 py-3 flex items-center gap-3">
+          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-emerald-50">
+            <Users className="h-5 w-5 text-emerald-600" />
+          </div>
           <div>
-            <p className="text-2xl font-bold text-green-600">{activeMentorCount}</p>
-            <p className="text-xs text-muted-foreground">Active Mentors</p>
+            <p className="text-2xl font-semibold text-emerald-600">{activeMentorCount}</p>
+            <p className="text-[11px] text-muted-foreground">Active Mentors</p>
           </div>
         </div>
-        <div className="rounded-lg border bg-card px-4 py-3 flex items-center gap-3">
-          <Clock className="h-8 w-8 text-yellow-500/50" />
+        <div className="rounded-lg border border-amber-100 bg-card px-4 py-3 flex items-center gap-3">
+          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-amber-50">
+            <Clock className="h-5 w-5 text-amber-600" />
+          </div>
           <div>
-            <p className="text-2xl font-bold text-yellow-600">{tiers.interested.filter(r => !activeMentorIds.has(r.mentorId)).length}</p>
-            <p className="text-xs text-muted-foreground">Mentors Interested</p>
+            <p className="text-2xl font-semibold text-amber-600">{tiers.interested.filter(r => !activeMentorIds.has(r.mentorId)).length}</p>
+            <p className="text-[11px] text-muted-foreground">Mentors Interested</p>
           </div>
         </div>
-        <div className="rounded-lg border bg-card px-4 py-3 flex items-center gap-3">
-          <Sparkles className="h-8 w-8 text-blue-500/50" />
+        <div className="rounded-lg border border-blue-100 bg-card px-4 py-3 flex items-center gap-3">
+          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-50">
+            <Sparkles className="h-5 w-5 text-blue-600" />
+          </div>
           <div>
-            <p className="text-2xl font-bold text-blue-600">{tiers.aiSuggested.filter(r => !activeMentorIds.has(r.mentorId)).length}</p>
-            <p className="text-xs text-muted-foreground">AI Suggestions</p>
+            <p className="text-2xl font-semibold text-blue-600">{tiers.aiSuggested.filter(r => !activeMentorIds.has(r.mentorId)).length}</p>
+            <p className="text-[11px] text-muted-foreground">AI Suggestions</p>
           </div>
         </div>
       </div>
@@ -325,7 +331,7 @@ export default function StartupDashboardPage() {
       {error && (
         <div className="rounded-md border border-destructive/50 bg-destructive/10 px-4 py-3 text-sm text-destructive">
           <p className="font-medium">{error.message}</p>
-          <p className="mt-1 text-xs">Ensure AI backend is running: cd ai-backend &amp;&amp; npm start (port 3002)</p>
+          <p className="mt-1 text-xs">Ensure AI backend is running: cd ai-backend &amp;&amp; npm start (port 3001)</p>
         </div>
       )}
 

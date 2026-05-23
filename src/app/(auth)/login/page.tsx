@@ -11,10 +11,8 @@ import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
-  CardDescription,
   CardFooter,
   CardHeader,
-  CardTitle,
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -38,16 +36,16 @@ export default function LoginPage() {
   }
 
   return (
-    <Card>
-      <CardHeader className="text-center">
-        <CardTitle>Welcome back</CardTitle>
-        <CardDescription>
-          Log in to your Nexora account to continue
-        </CardDescription>
+    <Card className="border-0 shadow-none sm:border sm:shadow-sm">
+      <CardHeader className="text-center pb-2">
+        <h1 className="text-xl font-semibold tracking-tight">Welcome back</h1>
+        <p className="text-[13px] text-muted-foreground mt-1">
+          Sign in to your account to continue
+        </p>
       </CardHeader>
-      <CardContent>
+      <CardContent className="pt-4">
         {authError && (
-          <div className="mb-4 rounded-md border border-destructive/50 bg-destructive/10 px-4 py-3 text-sm text-destructive">
+          <div className="mb-4 rounded-lg border border-destructive/30 bg-destructive/5 px-4 py-3 text-[13px] text-destructive">
             {authError.message}
           </div>
         )}
@@ -55,7 +53,7 @@ export default function LoginPage() {
         <form onSubmit={onSubmit} className="space-y-4">
           {/* Email */}
           <div className="space-y-2">
-            <Label htmlFor="email">Email</Label>
+            <Label htmlFor="email" className="text-[13px]">Email</Label>
             <Input
               id="email"
               type="email"
@@ -63,12 +61,13 @@ export default function LoginPage() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
+              className="text-[13px]"
             />
           </div>
 
           {/* Password */}
           <div className="space-y-2">
-            <Label htmlFor="password">Password</Label>
+            <Label htmlFor="password" className="text-[13px]">Password</Label>
             <div className="relative">
               <Input
                 id="password"
@@ -77,10 +76,11 @@ export default function LoginPage() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
+                className="text-[13px] pr-10"
               />
               <button
                 type="button"
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
                 onClick={() => setShowPassword(!showPassword)}
                 aria-label={showPassword ? "Hide password" : "Show password"}
               >
@@ -90,14 +90,14 @@ export default function LoginPage() {
           </div>
 
           {/* Submit */}
-          <Button type="submit" className="w-full" disabled={loading}>
-            {loading && <Loader2 className="animate-spin" />}
-            {loading ? "Logging in…" : "Log in"}
+          <Button type="submit" className="w-full text-[13px] font-medium cursor-pointer" disabled={loading}>
+            {loading && <Loader2 className="h-4 w-4 animate-spin mr-1.5" />}
+            {loading ? "Signing in…" : "Sign in"}
           </Button>
         </form>
       </CardContent>
-      <CardFooter className="justify-center">
-        <p className="text-sm text-muted-foreground">
+      <CardFooter className="justify-center pt-2">
+        <p className="text-[13px] text-muted-foreground">
           Don&apos;t have an account?{" "}
           <Link
             href="/register"

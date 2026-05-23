@@ -83,7 +83,7 @@ export function useStartupDiscovery() {
     fetchStartups();
   }, [fetchStartups]);
 
-  // Apply client-side filtering
+  // Apply client-side filtering (search + filters only, no interest exclusion)
   const startups = useMemo(
     () => filterStartups(allStartups, searchQuery, filters),
     [allStartups, searchQuery, filters]

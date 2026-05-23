@@ -56,10 +56,10 @@ export default function AdminDashboardPage() {
 
       {/* Key Metrics */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <MetricCard title="Total Startups" value={metrics.totalStartups} icon={Briefcase} description="Registered startups" />
-        <MetricCard title="Total Mentors" value={metrics.totalMentors} icon={Users} description="Registered mentors" />
-        <MetricCard title="Active Mentorships" value={metrics.activeRelationships} icon={Heart} description="Ongoing relationships" />
-        <MetricCard title="Pending Applications" value={metrics.pendingApplications} icon={Clock} description="Awaiting review" />
+        <MetricCard title="Total Startups" value={metrics.totalStartups} icon={Briefcase} color="blue" description="Registered startups" />
+        <MetricCard title="Total Mentors" value={metrics.totalMentors} icon={Users} color="teal" description="Registered mentors" />
+        <MetricCard title="Active Mentorships" value={metrics.activeRelationships} icon={Heart} color="rose" description="Ongoing relationships" />
+        <MetricCard title="Pending Applications" value={metrics.pendingApplications} icon={Clock} color="amber" description="Awaiting review" />
       </div>
 
       {/* Quick Actions + Ecosystem Health */}
